@@ -8,11 +8,26 @@
                 <div class="col-md-6">
                     <div class="row">
                         <el-input style="width: 83%;" v-model="search" placeholder="Enter name, type, artist name"></el-input>
-                        <el-button style="width: 7%; height: 40px;" icon="el-icon-search"></el-button>
+                        <el-button style="width: 7%; height: 40px;" icon="el-icon-search"  @click="filter()"></el-button>
                     </div>
                 </div>
-                <div class="col-md-4" style="text-align: right;">
-                    <el-button style="width: 35%; height: 40px; font-size: 16px;" icon="el-icon-document" @click="createNew()">Create New</el-button>
+                <div class="col-md-3">
+                    <el-dropdown>
+                        <el-button>
+                            Filter<i class="el-icon-arrow-down el-icon--right"></i>
+                        </el-button>
+                        <el-dropdown-menu slot="dropdown">
+                            <el-dropdown-item >
+                                <el-button class="actionIcon" @click="openDialog('createAt')"> Create At</el-button>
+                            </el-dropdown-item>
+                            <el-dropdown-item >
+                                <el-button class="actionIcon" @click="openDialog('createBy')"> Create By</el-button>
+                            </el-dropdown-item>
+                        </el-dropdown-menu>
+                    </el-dropdown>
+                </div>
+                <div class="col-md-3" style="text-align: right;">
+                    <el-button style="width: 50%; height: 40px; font-size: 16px;" icon="el-icon-document" @click="createNew()">Create New</el-button>
                 </div>
             </div>
         </div>
@@ -115,14 +130,69 @@
                 :total="50">
             </el-pagination>
         </div>
+        <el-dialog
+            title="Filter Create At"
+            :visible.sync="createAtFilter"
+            width="30%"
+            center>
+            <div class="block">
+                <el-date-picker
+                    style="width: 100%;"
+                    v-model="searchDay"
+                    type="daterange"
+                    align="right"
+                    start-placeholder="Start Date"
+                    end-placeholder="End Date"
+                    default-value="2010-10-01">
+                </el-date-picker>
+            </div>
+            <span slot="footer" class="dialog-footer">
+                <el-button style="background-color: #F56C6C !important; border-color: #F56C6C !important;" @click="closeDialog('createAt')">Cancel</el-button>
+                <el-button @click="closeDialog('createAt')">Confirm</el-button>
+            </span>
+        </el-dialog>
+        <el-dialog
+            title="Filter Create By"
+            :visible.sync="createByFilter"
+            width="30%"
+            center>
+            <el-select style="width: 100%;" v-model="searchSelect" placeholder="Select Create By">
+                <el-option
+                v-for="item in createByList"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+                </el-option>
+            </el-select>
+            <span slot="footer" class="dialog-footer">
+                <el-button style="background-color: #F56C6C !important; border-color: #F56C6C !important;" @click="closeDialog('createBy')">Cancel</el-button>
+                <el-button @click="closeDialog('createBy')">Confirm</el-button>
+            </span>
+        </el-dialog>
+        <div class="over-lay"></div>
     </div>
 </template>
 
 <script>
+import _ from 'lodash';
 export default {
     data(){
         return{
             search: '',
+            searchDay: '',
+            createAtFilter: false,
+            createByFilter: false,
+            createByList: [
+                {
+                    value: 'Option1',
+                    label: 'Option1'
+                }, 
+                {
+                    value: 'Option2',
+                    label: 'Option2'
+                }, 
+            ],
+            searchSelect: '',
             currentPage: 1,
             listProduct: [
                 {
@@ -235,9 +305,75 @@ export default {
         editDetail(id){
             const _this = this;
             _this.$router.push({path: `product/id=?${id}`});
-        }
+        },
+        filter(){
+            const _this = this;
+            const filter = _.filter(_this.listProduct, e =>{
+                if(e.name.toLowerCase() === _this.search.toLowerCase()){
+                    return e;
+                }
+                if(e.type.toLowerCase() === _this.search.toLowerCase()){
+                    return e;
+                }
+                if(e.artistName.toLowerCase() === _this.search.toLowerCase()){
+                    return e;
+                }
+            })
+
+            _this.listProduct = filter;
+        },
+        openDialog(type){
+            const _this = this;
+            const overLay = document.querySelector('.over-lay');
+            overLay.classList.add('active');
+            switch(type){
+                case 'createAt':
+                    _this.createAtFilter = true;
+                    break;
+                case 'createBy':
+                    _this.createByFilter = true;
+                    break;
+            }
+        },
+        closeDialog(type){
+            const _this = this;
+            const overLay = document.querySelector('.over-lay');
+            overLay.classList.remove('active');
+            switch(type){
+                case 'createAt':
+                    _this.createAtFilter = false;
+                    break;
+                case 'createBy':
+                    _this.createByFilter = false;
+                    break;
+            }
+        },
     }
 }
 </script>
 <style scoped>
+    .actionIcon{
+        font-size: 16px;
+        color: #182444;
+        background: transparent !important;
+    }
+    .actionIcon:hover{
+        color: #091023 !important;
+    }
+    .over-lay{
+        display: block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #000;
+        opacity: 0;
+        width: 100%;
+        height: 100vh;
+        z-index: 200;
+        visibility: hidden;
+    }
+    .over-lay.active{
+        visibility: visible;
+        opacity: 0.8;
+    }
 </style>

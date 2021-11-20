@@ -104,3 +104,6 @@ h2{
     line-height: 130px;
     text-align: center;
 }
+.el-dialog__headerbtn{
+    display: none;
+}

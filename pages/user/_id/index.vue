@@ -1,7 +1,7 @@
 <template>
     <div class="user-admin-page">
         <div class="container" style="padding: 30px 0;">
-            <h2 v-if="$route.params.id === null">Create New Account Admin</h2>
+            <h2 v-if="$route.params.id === 'id'">Create New Account Admin</h2>
             <h2 v-else>Update Account Admin</h2>
         </div>
         <div class="container" style="padding-bottom: 20px;">
@@ -62,24 +62,26 @@
             </div>
             <div class="row">
                 <div class="col-md-6" style="margin-top: 20px;">
-                    <div class="form-item" style="margin-top: 20px">
+                    <div class="form-item" style="margin-top: 20px; text-align: center">
                         <label class="label">Avatar</label>
-                        <div>
-                            <el-upload
-                                :class="formData.avatar || value ? '' : 'avatar-uploader'"
-                                :auto-upload="false"
-                                :multiple="false"
-                                action="#"
-                                :show-file-list="false"
-                                :on-change="handleChange"
-                            >
-                                <img
-                                    v-if="formData.avatar || value"
-                                    :src="formData.avatar"
-                                    class="img-fluid"
-                                />
-                                <i v-else class="el-icon-plus avatar-uploader-icon"></i>
-                            </el-upload>
+                        <div style="width: 100%;">
+                            <div class="wrapper">
+                                <div class="image">
+                                    <img id="img-upload" src="" alt=""/>
+                                </div>
+                                <div class="content">
+                                    <div class="icon">
+                                        <i class="el-icon-upload"></i>
+                                    </div>
+                                    <div class="text">No file chosen, yet!</div>
+                                </div>
+                                <div id="cancel-btn">
+                                    <i class="el-icon-close"></i>
+                                </div>
+                                <div class="file-name">File name here</div>
+                            </div>
+                            <input id="default-btn" type="file" hidden>
+                            <el-button @click="handleUploadImage()" style="margin-top: 20px;" id="custom-btn">Choose a file</el-button>
                         </div>
                     </div>
                 </div>
@@ -94,12 +96,7 @@
     </div>
 </template>
 <script>
-import { cloneDeep } from 'lodash';
 export default{
-    props: {
-		value: { type: String, },
-		type: { type: String, },
-	},
     data(){
         return{
             formData: {
@@ -122,19 +119,23 @@ export default{
             ],
         }
     },
-    watch: {
-		value() {
-			this.$emit('input', this.value);
-			this.formData.avatar = cloneDeep(this.value);
-		},
-	},
 	created() {
 		const _this = this;
-        if(_this.$route.params.id !== null)
+        if(_this.$route.params.id === 'id')
         {
+            _this.formData = {
+                userName: '',
+                password: '',
+                fullName: '',
+                phone: '',
+                address: '',
+                status: '',
+                avatar: '',
+            };
+        }
+        else{
             _this.formData = _this.$route.query.user;
         }
-		_this.formData.avatar = cloneDeep(_this.value);
 	},
     methods: {
         backPage(){
@@ -144,18 +145,34 @@ export default{
         handleSave(){
             console.log(this.formData);
         },
-        handleChange(file, fileList) {
-			const _this = this;
-
-			const isImage = ['image/png', 'image/jpeg'].includes(file.raw.type);
-			const isLt8M = file.raw.size / 1024 / 1024 < 8;
-
-			if (!isImage) return this.$message.error('Hình ảnh phải ở định dạng JPG/PNG!');
-			if (!isLt8M) return this.$message.error('Kích thước hình ảnh không được vượt quá 8MB!');
-
-			_this.$emit('input', file.raw);
-			_this.formData.avatar = URL.createObjectURL(file.raw);
-		},
+        handleUploadImage(){
+            const _this = this;
+            const defaulBtn = document.querySelector('#default-btn');
+            const fileName = document.querySelector('.file-name');
+            const img = document.querySelector('#img-upload');
+            const regExp = /[0-9a-zA-Z\^\&\'\@\{\}\[\]\,\$\=\!\-\#\(\)\.\%\+\~\_ ]+$/;
+            const cancelBtn = document.querySelector('#cancel-btn');
+            defaulBtn.click();
+            defaulBtn.addEventListener("change", function(){
+                const file = this.files[0];
+                if(file){
+                    const reader = new FileReader();
+                    reader.onload = function(){
+                        const result = reader.result;
+                        img.src = result;
+                    }
+                    cancelBtn.addEventListener("click", function(){
+                        img.src = "";
+                    })
+                    reader.readAsDataURL(file);
+                }
+                if(this.value){
+                    const valueStore = this.value.match(regExp);
+                    fileName.textContent = valueStore;
+                    _this.formData.avatar = fileName.textContent;
+                }
+            })
+        },
     }
 }
 </script>
@@ -165,5 +182,66 @@ export default{
         font-weight: 500;
         color: #182444;
         margin-bottom: 10px;
+    }
+    .wrapper{
+        width: 100%;
+        height: 300px;
+        border: 2px dashed #182444;
+        border-radius: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        position: relative;
+    }
+    .wrapper .image{
+        position: absolute;
+        width: 100%;
+        height: 100%;
+    }
+    .wrapper .image img{
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .wrapper .icon{
+        font-size: 100px;
+        color: #182444;
+        text-align: center;
+    }
+    .wrapper .text{
+        font-size: 16px;
+        font-weight: 500;
+        color: #182444;
+    }
+    .wrapper #cancel-btn{
+        position: absolute;
+        right: 10px;
+        top: 5px;
+        color: #fff;
+        font-size: 20px;
+        cursor: pointer;
+        transform: translateX(130%);
+        transition: 0.5s;
+    }
+    .wrapper .file-name{
+        position: absolute;
+        bottom: 0;
+        background: #182444;
+        width: 100%;
+        padding: 8px 0;
+        font-size: 16px;
+        text-align: center;
+        color: #fff;
+        transform: translateY(102%);
+        transition: 0.5s;
+    }
+    .wrapper:hover .file-name{
+        transform: translateY(0%);
+        transition: 0.5s;
+    }
+    .wrapper:hover #cancel-btn{
+        transform: translateX(0%);
+        transition: 0.5s;
     }
 </style>

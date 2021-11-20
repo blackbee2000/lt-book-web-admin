@@ -7,18 +7,33 @@
             <div class="row" style="justify-content: space-between;">
                 <div class="col-md-6">
                     <div class="row">
-                        <el-input style="width: 83%;" v-model="search" placeholder="Enter code, name customer, phonhe customer"></el-input>
-                        <el-button style="width: 7%; height: 40px;" icon="el-icon-search"></el-button>
+                        <el-input style="width: 83%;" v-model="search" placeholder="Enter code, name customer, phone customer"></el-input>
+                        <el-button style="width: 7%; height: 40px;" icon="el-icon-search" @click="filter()"></el-button>
                     </div>
                 </div>
-                <div class="col-md-4" style="text-align: right;">
-                    <el-button style="width: 35%; height: 40px; font-size: 16px;" icon="el-icon-document">Create New</el-button>
+                <div class="col-md-3">
+                    <el-dropdown>
+                        <el-button>
+                            Filter<i class="el-icon-arrow-down el-icon--right"></i>
+                        </el-button>
+                        <el-dropdown-menu slot="dropdown">
+                            <el-dropdown-item >
+                                <el-button class="actionIcon" @click="openDialog('createAt')"> Create At</el-button>
+                            </el-dropdown-item>
+                            <el-dropdown-item >
+                                <el-button class="actionIcon" @click="openDialog('createBy')"> Create By</el-button>
+                            </el-dropdown-item>
+                        </el-dropdown-menu>
+                    </el-dropdown>
+                </div>
+                <div class="col-md-3" style="text-align: right;">
+                    <!-- <el-button style="width: 50%; height: 40px; font-size: 16px;" icon="el-icon-document">Create New</el-button> -->
                 </div>
             </div>
         </div>
         <div class="container">
             <el-table
-            :data="listBlog"
+            :data="listCart"
             style="width: 100%">
                 <el-table-column label="Code" width="100">
                     <template slot-scope="scope">
@@ -26,7 +41,7 @@
                     </template>
                 </el-table-column>
                 <el-table-column label="Function" width="150">
-                    <i class="el-icon-edit icon-funtion"></i>
+                    <i class="el-icon-edit icon-funtion" @click="openDialog('edit')"></i>
                     <i class="el-icon-delete icon-funtion"></i>
                     <i @click="handleOpen()" class="el-icon-view icon-funtion"></i>
                 </el-table-column>
@@ -149,16 +164,95 @@
 			</div>
         </el-drawer>
         <div class="over-lay"></div>
+        <el-dialog
+            title="Filter Create At"
+            :visible.sync="createAtFilter"
+            width="30%"
+            center>
+            <div class="block">
+                <el-date-picker
+                    style="width: 100%;"
+                    v-model="searchDay"
+                    type="daterange"
+                    align="right"
+                    start-placeholder="Start Date"
+                    end-placeholder="End Date"
+                    default-value="2010-10-01">
+                </el-date-picker>
+            </div>
+            <span slot="footer" class="dialog-footer">
+                <el-button style="background-color: #F56C6C !important; border-color: #F56C6C !important;" @click="closeDialog('createAt')">Cancel</el-button>
+                <el-button @click="closeDialog('createAt')">Confirm</el-button>
+            </span>
+        </el-dialog>
+        <el-dialog
+            title="Filter Create By"
+            :visible.sync="createByFilter"
+            width="30%"
+            center>
+            <el-select style="width: 100%;" v-model="searchSelect" placeholder="Select Create By">
+                <el-option
+                v-for="item in createByList"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+                </el-option>
+            </el-select>
+            <span slot="footer" class="dialog-footer">
+                <el-button style="background-color: #F56C6C !important; border-color: #F56C6C !important;" @click="closeDialog('createBy')">Cancel</el-button>
+                <el-button @click="closeDialog('createBy')">Confirm</el-button>
+            </span>
+        </el-dialog>
+        <el-dialog
+            title="Edit Contact Customer"
+            :visible.sync="editCart"
+            width="50%"
+            center>
+            <div class="form">
+                <div class="form-item">
+                    <label class="label">Name Customer</label>
+                    <el-input type="text" v-model="formData.nameCustomer" placeholder="Name Customer"></el-input>
+                </div>
+                <div class="form-item" style="margin-top: 20px">
+                    <label class="label">Phone Customer</label>
+                    <el-input type="text" v-model="formData.phoneCustomer" placeholder="Name Customer"></el-input>
+                </div>
+                <div class="form-item" style="margin-top: 20px">
+                    <label class="label">Add Customer</label>
+                    <el-input type="text" v-model="formData.addressCustomer" placeholder="Name Customer"></el-input>
+                </div>
+            </div>
+            <span slot="footer" class="dialog-footer">
+                <el-button style="background-color: #F56C6C !important; border-color: #F56C6C !important;" @click="closeDialog('edit')">Cancel</el-button>
+                <el-button @click="closeDialog('edit')">Save</el-button>
+            </span>
+        </el-dialog>
     </div>
 </template>
 
 <script>
+import _ from 'lodash';
 export default {
     data(){
         return{
+            editCart: false,
             search: '',
+            searchDay: '',
+            createAtFilter: false,
+            createByFilter: false,
+            createByList: [
+                {
+                    value: 'Option1',
+                    label: 'Option1'
+                }, 
+                {
+                    value: 'Option2',
+                    label: 'Option2'
+                }, 
+            ],
+            searchSelect: '',
             currentPage: 1,
-            listBlog: [
+            listCart: [
                 {
                     id: "1",
                     code: 'MDH01',
@@ -215,6 +309,11 @@ export default {
                     idUser: "1"
                 },
             ],
+            formData: {
+                nameCustomer: '',
+                phoneCustomer: '',
+                addressCustomer: '',
+            },
             showDialog: false,
             cartDetail: [
                 {
@@ -322,6 +421,54 @@ export default {
             overLay.classList.remove('active');
 			_this.showDialog = false;
         },
+        filter(){
+            const _this = this;
+            const filter = _.filter(_this.listCart, e =>{
+                if(e.code.toLowerCase() === _this.search.toLowerCase()){
+                    return e;
+                }
+                if(e.nameCustomer.toLowerCase() === _this.search.toLowerCase()){
+                    return e;
+                }
+                if(e.phoneCustomer.toLowerCase() === _this.search.toLowerCase()){
+                    return e;
+                }
+            })
+
+            _this.listCart = filter;
+        },
+        openDialog(type){
+            const _this = this;
+            const overLay = document.querySelector('.over-lay');
+            overLay.classList.add('active');
+            switch(type){
+                case 'createAt':
+                    _this.createAtFilter = true;
+                    break;
+                case 'createBy':
+                    _this.createByFilter = true;
+                    break;
+                case 'edit':
+                    _this.editCart = true;
+                    break;
+            }
+        },
+        closeDialog(type){
+            const _this = this;
+            const overLay = document.querySelector('.over-lay');
+            overLay.classList.remove('active');
+            switch(type){
+                case 'createAt':
+                    _this.createAtFilter = false;
+                    break;
+                case 'createBy':
+                    _this.createByFilter = false;
+                    break;
+                case 'edit':
+                    _this.editCart = false;
+                    break;
+            }
+        },
     }
 }
 </script>
@@ -344,5 +491,13 @@ export default {
     .over-lay.active{
         visibility: visible;
         opacity: 0.8;
+    }
+    .actionIcon{
+        font-size: 16px;
+        color: #182444;
+        background: transparent !important;
+    }
+    .actionIcon:hover{
+        color: #091023 !important;
     }
 </style>

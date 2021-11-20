@@ -7,12 +7,27 @@
             <div class="row" style="justify-content: space-between;">
                 <div class="col-md-6">
                     <div class="row">
-                        <el-input style="width: 83%;" v-model="search" placeholder="Enter title, tag"></el-input>
-                        <el-button style="width: 7%; height: 40px;" icon="el-icon-search"></el-button>
+                        <el-input style="width: 83%;" v-model="search" placeholder="Enter title"></el-input>
+                        <el-button style="width: 7%; height: 40px;" icon="el-icon-search" @click="filter()"></el-button>
                     </div>
                 </div>
-                <div class="col-md-4" style="text-align: right;">
-                    <el-button style="width: 35%; height: 40px; font-size: 16px;" icon="el-icon-document" @click="createNew()">Create New</el-button>
+                <div class="col-md-3">
+                    <el-dropdown>
+                        <el-button>
+                            Filter<i class="el-icon-arrow-down el-icon--right"></i>
+                        </el-button>
+                        <el-dropdown-menu slot="dropdown">
+                            <el-dropdown-item >
+                                <el-button class="actionIcon" @click="createAtFilter = true"> Create At</el-button>
+                            </el-dropdown-item>
+                            <el-dropdown-item >
+                                <el-button class="actionIcon" @click="createByFilter = true"> Create By</el-button>
+                            </el-dropdown-item>
+                        </el-dropdown-menu>
+                    </el-dropdown>
+                </div>
+                <div class="col-md-3" style="text-align: right;">
+                    <el-button style="width: 50%; height: 40px; font-size: 16px;" icon="el-icon-document" @click="createNew()">Create New</el-button>
                 </div>
             </div>
         </div>
@@ -84,19 +99,72 @@
                 :total="50">
             </el-pagination>
         </div>
+        <el-dialog
+            title="Filter Create At"
+            :visible.sync="createAtFilter"
+            width="30%"
+            center>
+            <div class="block">
+                <el-date-picker
+                    style="width: 100%;"
+                    v-model="searchDay"
+                    type="daterange"
+                    align="right"
+                    start-placeholder="Start Date"
+                    end-placeholder="End Date"
+                    default-value="2010-10-01">
+                </el-date-picker>
+            </div>
+            <span slot="footer" class="dialog-footer">
+                <el-button style="background-color: #F56C6C !important; border-color: #F56C6C !important;" @click="createAtFilter = false">Cancel</el-button>
+                <el-button @click="createAtFilter = false">Confirm</el-button>
+            </span>
+        </el-dialog>
+        <el-dialog
+            title="Filter Create By"
+            :visible.sync="createByFilter"
+            width="30%"
+            center>
+            <el-select style="width: 100%;" v-model="searchSelect" placeholder="Select Create By">
+                <el-option
+                v-for="item in createByList"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+                </el-option>
+            </el-select>
+            <span slot="footer" class="dialog-footer">
+                <el-button style="background-color: #F56C6C !important; border-color: #F56C6C !important;" @click="createByFilter = false">Cancel</el-button>
+                <el-button @click="createByFilter = false">Confirm</el-button>
+            </span>
+        </el-dialog>
     </div>
 </template>
 
 <script>
+import _ from 'lodash';
 export default {
     data(){
         return{
             search: '',
+            searchDay: '',
+            createAtFilter: false,
+            createByFilter: false,
+            createByList: [
+                {
+                    value: 'Option1',
+                    label: 'Option1'
+                }, 
+                {
+                    value: 'Option2',
+                    label: 'Option2'
+                }, 
+            ],
             currentPage: 1,
             listBlog: [
                 {
                     id: "1",
-                    tilte: 'Top 10 cuốn sách bánh cuốn',
+                    title: 'Top 10 cuốn sách bánh cuốn',
                     content: 'content',
                     smallContent: 'smallContent',
                     tags: 'abc',
@@ -108,7 +176,7 @@ export default {
                 },
                 {
                     id: "2",
-                    tilte: 'Top 10 cuốn sách bánh cuốn',
+                    title: 'Top 10 cuốn sách bánh cuốn',
                     content: 'content',
                     smallContent: 'smallContent',
                     tags: 'abc',
@@ -120,7 +188,7 @@ export default {
                 },
                 {
                     id: "3",
-                    tilte: 'Top 10 cuốn sách bánh cuốn',
+                    title: 'Top 10 cuốn sách bánh cuốn',
                     content: 'content',
                     smallContent: 'smallContent',
                     tags: 'abc',
@@ -132,7 +200,7 @@ export default {
                 },
                 {
                     id: "4",
-                    tilte: 'Top 10 cuốn sách bánh cuốn',
+                    title: 'Top 10 cuốn sách bánh cuốn',
                     content: 'content',
                     smallContent: 'smallContent',
                     tags: 'abc',
@@ -144,7 +212,7 @@ export default {
                 },
                 {
                     id: "5",
-                    tilte: 'Top 10 cuốn sách bánh cuốn',
+                    title: 'Top 10 cuốn sách bánh cuốn',
                     content: 'content',
                     smallContent: 'smallContent',
                     tags: 'abc',
@@ -175,9 +243,27 @@ export default {
         editDetail(id){
             const _this = this;
             _this.$router.push({path: `blog/id=?${id}`});
+        },
+        filter(){
+            const _this = this;
+            const filter = _.filter(_this.listBlog, e =>{
+                if(e.title.toLowerCase() === _this.search.toLowerCase()){
+                    return e;
+                }
+            })
+
+            _this.listBlog = filter;
         }
     }
 }
 </script>
 <style scoped>
+    .actionIcon{
+        font-size: 16px;
+        color: #182444;
+        background: transparent !important;
+    }
+    .actionIcon:hover{
+        color: #091023 !important;
+    }
 </style>
