@@ -1,7 +1,8 @@
 <template>
     <div class="user-admin-page">
         <div class="container" style="padding: 30px 0;">
-            <h2>Create New Blog</h2>
+            <h2 v-if="$route.params.id === 'id'">Create New Blog</h2>
+            <h2 v-else>Update Blog</h2>
         </div>
         <div class="container" style="padding-bottom: 20px;">
             <div class="row" style="justify-content: flex-end;">
@@ -50,7 +51,7 @@
                 <div class="col-md-12">
                     <div class="form-item" style="margin-top: 20px">
                         <label class="label">Small Content</label>
-                        <el-input type="textarea" :rows="3" v-model="formData.smallContent" placeholder="Description"></el-input>
+                        <el-input type="textarea" :rows="3" v-model="formData.content" placeholder="Description"></el-input>
                     </div>
                 </div>    
             </div>
@@ -85,7 +86,7 @@
                     <div class="form-item" style="margin-top: 20px">
                         <label class="label">Content</label>
                         <div>
-                            <vue-editor v-model="formData.content"></vue-editor>
+                            <vue-editor v-model="formData.bigContent"></vue-editor>
                         </div>
                     </div>
                 </div>
@@ -109,11 +110,11 @@ export default{
         return{
             formData: {
                 title: '',
-                tag: '',
-                smallContent: '',
+                tags: '',
+                bigContent: '',
                 content: '',
                 dynamicTags: [],
-                imageUrl: '',
+                imgUrl: '',
             },
             inputVisible: false,
             inputValue: '',
@@ -121,6 +122,20 @@ export default{
     },
 	created() {
 		const _this = this;
+        if(_this.$route.params.id === 'id')
+        {
+            _this.formData = {
+                title: '',
+                tags: '',
+                bigContent: '',
+                content: '',
+                dynamicTags: [],
+                imgUrl: '',
+            };
+        }
+        else{
+            _this.formData = _this.$route.query.blog;
+        }
 	},
     methods: {
         backPage(){

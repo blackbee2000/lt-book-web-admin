@@ -107,3 +107,6 @@ h2{
 .el-dialog__headerbtn{
     display: none;
 }
+img{
+    width: 100%;
+}
