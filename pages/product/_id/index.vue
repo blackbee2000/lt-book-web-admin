@@ -216,11 +216,52 @@
         >
       </div>
     </div>
+    <div class="container" style="margin-top: 30px;">
+      <el-table :data="commentList" style="width: 100%">
+        <el-table-column width="100">
+          <template slot-scope="scope">
+            <el-avatar
+              v-if="scope.row.avtUser"
+              :size="50"
+              fit="cover"
+              shape="circle"
+              :src="scope.row.avtUser"
+            >
+            </el-avatar>
+          </template>
+        </el-table-column>
+        <el-table-column label="Function" width="100">
+          <i class="el-icon-edit icon-funtion"></i>
+          <i class="el-icon-delete icon-funtion"></i>
+        </el-table-column>
+        <el-table-column label="Name User">
+          <template slot-scope="scope">
+            <span>{{ scope.row.nameUser }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="Content">
+          <template slot-scope="scope">
+            <span>{{ scope.row.content }} VNĐ</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="Level" width="80">
+          <template slot-scope="scope">
+            <span>{{ scope.row.level }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="Id Parent" width="80">
+          <template slot-scope="scope">
+            <span>{{ scope.row.idParent }}</span>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
   </div>
 </template>
 <script>
 import axios from 'axios'
 import moment from 'moment'
+import apiService from '@/store/apiService'
 export default {
   data() {
     return {
@@ -244,12 +285,28 @@ export default {
       colorsRating: ['#99A9BF', '#F7BA2A', '#FF9900'],
       typeBook: [
         {
-          value: 'comic',
+          value: 'Comic',
           label: 'Comic',
         },
         {
-          value: 'novel',
+          value: 'Novel',
           label: 'Novel',
+        },
+        {
+          value: 'Poem',
+          label: 'Poem',
+        },
+        {
+          value: 'TextBook',
+          label: 'TextBook',
+        },
+        {
+          value: 'Thriller',
+          label: 'Thriller',
+        },
+        {
+          value: 'Short',
+          label: 'Short',
         },
       ],
       status: [
@@ -262,6 +319,7 @@ export default {
           label: 'Hết hàng',
         },
       ],
+      commentList: [],
     }
   },
   created() {
@@ -281,6 +339,7 @@ export default {
       }
     } else {
       _this.formData = _this.$route.query.product
+      _this.getCommentByIdBook(_this.$route.query.product.id)
     }
   },
   methods: {
@@ -288,11 +347,27 @@ export default {
       const _this = this
       _this.$router.push('/product')
     },
+    async getCommentByIdBook(id) {
+      const _this = this
+      const params = {
+        idBook: id,
+      }
+      await axios
+        .post(
+          'https://lt-book-api.herokuapp.com/api/comment/getByIdBook',
+          params
+        )
+        .then((res) => {
+          console.log('resss', res.data)
+          _this.commentList = res.data.data
+        })
+        .catch((error) => {
+          console.log('error comment')
+        })
+    },
     async handleSave() {
-      const _this = this;
-      const user = await JSON.parse(localStorage.getItem('user'));
-      const token = await JSON.parse(localStorage.getItem('token'));
-      console.log(token);
+      const _this = this
+      const user = await JSON.parse(localStorage.getItem('user'))
       const paramCreate = {
         id: null,
         name: _this.formData.name,
@@ -312,39 +387,64 @@ export default {
         createAt: moment().format('DD/MM/YYYY'),
         updateBy: '',
         updateAt: '',
+        numBuy: null,
       }
-      console.log(paramCreate);
+      const paramUpdate = {
+        name: _this.formData.name,
+        price: _this.formData.price,
+        rating: _this.formData.rating,
+        sold: '2000',
+        description: _this.formData.description,
+        artistAvatar: _this.formData.artistAvatar,
+        artistName: _this.formData.artistName,
+        artistBornDay: moment(_this.formData.artistBornDay).format(
+          'DD/MM/YYYY'
+        ),
+        type: _this.formData.type,
+        status: _this.formData.status,
+        imageBook: _this.formData.imageBook,
+        createBy: user.data.username,
+        createAt: moment().format('DD/MM/YYYY'),
+        updateBy: user.data.username,
+        updateAt: moment().format('DD/MM/YYYY'),
+        numBuy: 3,
+      }
       if (_this.$route.params.id === 'id') {
-        await axios.post(
-          'https://lt-book-online.herokuapp.com/api/book/Create',
-          paramCreate,
-          {
-            headers: {
-              'content-type': 'application/json',
-              // 'Authorization': `Bearer ${token.access_token}`
-            }
-          }
-        ).then(
-          res => {
-            _this.$message({
-              message: 'Create successfully',
-              type: 'success'
-            });
-            setTimeout(() =>{
-              _this.$router.push('/product');
-            }, 2000)
-          }
-        )
-        .catch(
-          error =>{
-            _this.$message({
-              message: 'Create Failed',
-              type: 'error'
-            });
-          }
-        )
+        const res = await apiService.createBook(paramCreate)
+        if (res) {
+          _this.$message({
+            message: 'Create successfully',
+            type: 'success',
+          })
+          setTimeout(() => {
+            _this.$router.push('/product')
+          }, 2000)
+        } else {
+          _this.$message({
+            message: 'Create Failed',
+            type: 'error',
+          })
+        }
       } else {
-        console.log('helllooooo')
+        console.log(_this.$route.query.product.id)
+        const res = await apiService.updateBook(
+          _this.$route.query.product.id,
+          paramUpdate
+        )
+        if (res) {
+          _this.$message({
+            message: 'Update successfully',
+            type: 'success',
+          })
+          setTimeout(() => {
+            _this.$router.push('/product')
+          }, 2000)
+        } else {
+          _this.$message({
+            message: 'Update Failed',
+            type: 'error',
+          })
+        }
       }
     },
     async uploadImage(image, type) {
@@ -353,21 +453,31 @@ export default {
       bodyFormData.append('file', image)
       await axios
         .post(
-          'https://lt-book-online.herokuapp.com/api/fileUpload',
+          'https://lt-book-api.herokuapp.com/api/fileUpload',
           bodyFormData,
           _this.config
         )
         .then((res) => {
-          console.log('res', res.data.data)
+          _this.readImage(res.data.data)
           if (type === 'book') {
-            _this.formData.imageBook = `https://lt-book-online.herokuapp.com/api/fileUpload/files/${res.data.data}`
+            _this.formData.imageBook = `https://lt-book-api.herokuapp.com/api/fileUpload/files/${res.data.data}`
           }
           if (type === 'avatar') {
-            _this.formData.artistAvatar = `https://lt-book-online.herokuapp.com/api/fileUpload/files/${res.data.data}`
+            _this.formData.artistAvatar = `https://lt-book-api.herokuapp.com/api/fileUpload/files/${res.data.data}`
           }
         })
         .catch((error) => {
           console.log('error upload image')
+        })
+    },
+    async readImage(image) {
+      await axios
+        .get(`https://lt-book-api.herokuapp.com/api/fileUpload/files/${image}`)
+        .then((res) => {
+          console.log(res)
+        })
+        .catch((error) => {
+          console.log('error read image')
         })
     },
     handleUploadImage() {
@@ -375,7 +485,6 @@ export default {
       const defaulBtn = document.querySelector('#default-btn')
       const fileName = document.querySelector('.file-name')
       const img = document.querySelector('#img-upload')
-      const regExp = /[0-9a-zA-Z\^\&\'\@\{\}\[\]\,\$\=\!\-\#\(\)\.\%\+\~\_ ]+$/
       const cancelBtn = document.querySelector('#cancel-btn')
       defaulBtn.click()
       defaulBtn.addEventListener('change', function () {
@@ -393,7 +502,7 @@ export default {
           reader.readAsDataURL(file)
         }
         if (this.value) {
-          const valueStore = this.value.match(regExp)
+          const valueStore = this.value
           fileName.textContent = valueStore
         }
       })
@@ -403,7 +512,6 @@ export default {
       const defaulBtn = document.querySelector('#default-btnTwo')
       const fileName = document.querySelector('.file-nameTwo')
       const img = document.querySelector('#img-uploadTwo')
-      const regExp = /[0-9a-zA-Z\^\&\'\@\{\}\[\]\,\$\=\!\-\#\(\)\.\%\+\~\_ ]+$/
       const cancelBtn = document.querySelector('#cancel-btnTwo')
       defaulBtn.click()
       defaulBtn.addEventListener('change', function () {
@@ -421,7 +529,7 @@ export default {
           reader.readAsDataURL(file)
         }
         if (this.value) {
-          const valueStore = this.value.match(regExp)
+          const valueStore = this.value
           fileName.textContent = valueStore
         }
       })

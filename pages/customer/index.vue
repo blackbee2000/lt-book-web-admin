@@ -38,14 +38,14 @@
             </el-dropdown-menu>
           </el-dropdown>
         </div>
-        <div class="col-md-3" style="text-align: right">
+        <!-- <div class="col-md-3" style="text-align: right">
           <el-button
             style="width: 50%; height: 40px; font-size: 16px"
             icon="el-icon-document"
             @click="createNew()"
             >Create New</el-button
           >
-        </div>
+        </div> -->
       </div>
     </div>
     <div class="container">
@@ -63,13 +63,12 @@
           </template>
         </el-table-column>
         <el-table-column label="Function" width="100">
-          <template slot-scope="scope">
-            <i
-              class="el-icon-edit icon-funtion"
-              @click="editDetail(scope.row.id)"
-            ></i>
+          <!-- <template slot-scope="scope">
+            <i class="el-icon-edit icon-funtion"></i>
             <i class="el-icon-delete icon-funtion"></i>
-          </template>
+          </template> -->
+          <i class="el-icon-edit icon-funtion"></i>
+          <i class="el-icon-delete icon-funtion"></i>
         </el-table-column>
         <el-table-column label="User Name" width="150">
           <template slot-scope="scope">
@@ -226,9 +225,9 @@ export default {
   },
   methods: {
     async getData() {
-      const _this = this;
+      const _this = this
       await axios
-        .get('https://lt-book-online.herokuapp.com/api/users')
+        .get('https://lt-book-api.herokuapp.com/api/users')
         .then((res) => {
           _.map(res.data, (e) => {
             if (e.roles[0].name === 'ROLE_USER') {
@@ -238,8 +237,10 @@ export default {
         })
         .catch((error) => {
           console.log('error')
-        })
+        }
+      )
     },
+
     handleSizeChange(val) {
       const _this = this
       _this.size = val
@@ -248,14 +249,6 @@ export default {
     handleCurrentChange(val) {
       const _this = this
       _this.from = (_this.currentPage - 1) * _this.size
-    },
-    createNew() {
-      const _this = this
-      _this.$router.push('customer/id')
-    },
-    editDetail(id) {
-      const _this = this
-      _this.$router.push({ path: `customer/id=?${id}` })
     },
     filter() {
       const _this = this

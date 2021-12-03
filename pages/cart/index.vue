@@ -339,7 +339,7 @@ export default {
   },
   created() {
     const _this = this
-    _this.getData()
+    // _this.getData()
   },
   methods: {
     async getData() {
@@ -377,7 +377,7 @@ export default {
       const _this = this
       const overLay = document.querySelector('.over-lay')
       overLay.classList.add('active')
-      _this.getProductCart(row.code);
+      // _this.getProductCart(row.code);
       _this.showDialog = true;
     },
     handleClose() {

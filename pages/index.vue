@@ -2,7 +2,7 @@
   <div>
     <div class="login">
       <div class="form">
-        <div class="logo-login">Logo</div>
+        <div class="logo-login">LTBOOK</div>
         <el-form ref="form" :model="form" class="formLogin">
           <div class="logoUser">
             <img
@@ -59,18 +59,18 @@ export default {
       params.append('username', _this.form.userName)
       params.append('password', _this.form.password)
       await axios
-        .post('https://lt-book-online.herokuapp.com/api/login', params, this.config)
+        .post('https://lt-book-api.herokuapp.com/api/login', params, this.config)
         .then(async (response) => {
           _this.login = true;
           localStorage.setItem('token', JSON.stringify(response.data))
           await axios
-            .get('https://lt-book-online.herokuapp.com/api/user/info', {
+            .get('https://lt-book-api.herokuapp.com/api/user/info', {
               headers: {
                 Authorization: `Bearer ${response.data.access_token}`,
               },
             })
             .then((res) => {
-              if(res.data.data.roles[0].name === "ROLE_SUPER_ADMIN"){
+              if(res.data.data.roles[0].name === "ROLE_SUPER_ADMIN" || res.data.data.roles[0].name === "ROLE_ADMIN"){
                 setTimeout(() =>{
                   _this.$router.push("/user");
                 }, 1000)

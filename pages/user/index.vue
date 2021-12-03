@@ -228,13 +228,14 @@ export default {
     async getData() {
       const _this = this
       await axios
-        .get('https://lt-book-online.herokuapp.com/api/users')
+        .get('https://lt-book-api.herokuapp.com/api/users')
         .then((res) => {
           _.map(res.data, (e) => {
-              if(e.roles[0].name === "ROLE_SUPER_ADMIN"){
+              if(e.roles[0].name === "ROLE_SUPER_ADMIN" || e.roles[0].name === "ROLE_ADMIN"){
                   _this.userAdmin.push(e);
               }
           });
+          console.log(_this.userAdmin);
         })
         .catch((error) => {
           console.log('error')

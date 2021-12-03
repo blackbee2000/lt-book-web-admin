@@ -2,7 +2,7 @@
   <div>
     <header class="header-admin">
       <div class="logo-menu">
-        <div class="logo">Logo</div>
+        <div class="logo">LTBOOK</div>
         <div class="menu" @click="handleButtonMenu($event)">
           <img src="../assets/icons/icon-menu.png" alt="icon-user" />
         </div>
@@ -14,7 +14,7 @@
         <div class="name">
           <el-dropdown>
             <span class="el-dropdown-link" v-if="name">
-              {{name}} <i class="el-icon-arrow-down el-icon--right"></i>
+              {{ name }} <i class="el-icon-arrow-down el-icon--right"></i>
             </span>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item>
@@ -78,6 +78,17 @@
           </ul>
         </el-collapse-item>
       </el-collapse>
+      <el-collapse class="list-menu">
+        <el-collapse-item class="item-menu">
+          <template slot="title">
+            <i class="header-icon el-icon-message"></i>
+            Contact
+          </template>
+          <ul>
+            <li @click="handlePage('contact')">List Contact</li>
+          </ul>
+        </el-collapse-item>
+      </el-collapse>
     </div>
     <main>
       <Nuxt />
@@ -95,13 +106,17 @@ export default {
       name: 'linh',
     }
   },
-  created(){
+  mounted(){
     const _this = this;
-    const user = JSON.parse(localStorage.getItem('user'));
-    console.log('user', user.data.name);
-    _this.name = user.data.name;
+    _this.storage();
   },
   methods: {
+    storage() {
+      const _this = this
+      const user = JSON.parse(localStorage.getItem('user'))
+      console.log('user', user.data.name)
+      _this.name = user?.data?.name
+    },
     handleButtonMenu(event) {
       const body = document.querySelector('body')
       event.stopPropagation()
@@ -132,6 +147,8 @@ export default {
         case 'cart':
           _this.$router.push('cart')
           break
+        case 'contact':
+          _this.$router.push('contact')
       }
       const body = document.querySelector('body')
       body.classList.remove('active')
@@ -143,10 +160,10 @@ export default {
       _this.$router.push('changePassword')
     },
     handleLogout() {
-      const _this = this;
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      _this.$router.push("/");
+      const _this = this
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      _this.$router.push('/')
     },
   },
 }

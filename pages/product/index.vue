@@ -10,7 +10,7 @@
             <el-input
               style="width: 83%"
               v-model="search"
-              placeholder="Enter name, type, artist name"
+              placeholder="Enter name, artist name"
             ></el-input>
             <el-button
               style="width: 7%; height: 40px"
@@ -26,8 +26,8 @@
             </el-button>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item>
-                <el-button class="actionIcon" @click="openDialog('createAt')">
-                  Create At</el-button
+                <el-button class="actionIcon" @click="openDialog('type')">
+                  Type Book</el-button
                 >
               </el-dropdown-item>
               <el-dropdown-item>
@@ -68,7 +68,10 @@
               class="el-icon-edit icon-funtion"
               @click="editDetail(scope.row.id, scope.row)"
             ></i>
-            <i class="el-icon-delete icon-funtion"></i>
+            <i
+              class="el-icon-delete icon-funtion"
+              @click="deleteItem(scope.row.id)"
+            ></i>
           </template>
         </el-table-column>
         <el-table-column label="Name" width="150">
@@ -118,14 +121,19 @@
             <span>{{ scope.row.artistBornDay }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="Type" width="100">
+        <el-table-column label="Type" width="150">
           <template slot-scope="scope">
             <span>{{ scope.row.type }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="Status" width="100">
+        <el-table-column label="Status" width="150">
           <template slot-scope="scope">
             <span>{{ scope.row.status }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="Num Buy" width="100">
+          <template slot-scope="scope">
+            <span>{{ scope.row.numBuy }}</span>
           </template>
         </el-table-column>
         <el-table-column label="Create By" width="150">
@@ -162,33 +170,34 @@
       </el-pagination>
     </div>
     <el-dialog
-      title="Filter Create At"
-      :visible.sync="createAtFilter"
+      title="Filter Type Book"
+      :visible.sync="typeFilter"
       width="30%"
       center
     >
-      <div class="block">
-        <el-date-picker
-          style="width: 100%"
-          v-model="searchDay"
-          type="daterange"
-          align="right"
-          start-placeholder="Start Date"
-          end-placeholder="End Date"
-          default-value="2010-10-01"
+      <el-select
+        style="width: 100%"
+        v-model="typeSearch"
+        placeholder="Select Type Book"
+      >
+        <el-option
+          v-for="item in typeList"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
         >
-        </el-date-picker>
-      </div>
+        </el-option>
+      </el-select>
       <span slot="footer" class="dialog-footer">
         <el-button
           style="
             background-color: #f56c6c !important;
             border-color: #f56c6c !important;
           "
-          @click="closeDialog('createAt')"
+          @click="closeDialog('type')"
           >Cancel</el-button
         >
-        <el-button @click="closeDialog('createAt')">Confirm</el-button>
+        <el-button @click="closeDialog('type')">Confirm</el-button>
       </span>
     </el-dialog>
     <el-dialog
@@ -228,41 +237,39 @@
 
 <script>
 import _ from 'lodash'
-import axios from 'axios';
+import axios from 'axios'
+import apiService from '@/store/apiService'
 export default {
-  layout: "default",
+  layout: 'default',
   data() {
     return {
       search: '',
-      searchDay: '',
-      createAtFilter: false,
+      typeSearch: '',
+      typeFilter: false,
       createByFilter: false,
-      createByList: [
-        {
-          value: 'Option1',
-          label: 'Option1',
-        },
-        {
-          value: 'Option2',
-          label: 'Option2',
-        },
-      ],
+      typeList: [],
+      createByList: [],
       searchSelect: '',
       currentPage: 1,
       listProduct: [],
+      commentList: [],
     }
   },
   created() {
-    const _this = this;
+    const _this = this
     _this.getData()
   },
   methods: {
     async getData() {
-      const _this = this;
+      const _this = this
       await axios
-        .get('https://lt-book-online.herokuapp.com/api/book/GetByQuery')
+        .get('https://lt-book-api.herokuapp.com/api/book/GetByQuery')
         .then((res) => {
-          _this.listProduct = res.data;
+          _this.listProduct = res.data
+          _.map(res.data, (e) => {
+            _this.createByList.push({ value: e.createBy, label: e.createBy })
+            _this.typeList.push({ value: e.type, label: e.type })
+          })
         })
         .catch((error) => {
           console.log('error')
@@ -283,44 +290,106 @@ export default {
     },
     editDetail(id, row) {
       const _this = this
-      _this.$router.push({ path: `product/id=?${id}`, query: {product: row} })
+      _this.$router.push({ path: `product/id=?${id}`, query: { product: row } })
+    },
+    async deleteItem(id) {
+      const _this = this
+      _this
+        .$confirm('Are you want to delete?', 'Warning', {
+          confirmButtonText: 'Ok',
+          cancelButtonText: 'Cancel',
+          type: 'warning',
+        })
+        .then(async () => {
+          const res = await apiService.deleteBook(id)
+          if (res) {
+            _this.$message({
+              message: 'Delete successfully',
+              type: 'success',
+            })
+            setTimeout(() => {
+              _this.getData()
+            }, 1000)
+          } else {
+            _this.$message({
+              message: 'Delete Failed',
+              type: 'error',
+            })
+          }
+        })
     },
     filter() {
       const _this = this
-      const filter = _.filter(_this.listProduct, (e) => {
+      _this.listProduct = _.filter(_this.listProduct, (e) => {
         if (e.name.toLowerCase() === _this.search.toLowerCase()) {
-          return e
-        }
-        if (e.type.toLowerCase() === _this.search.toLowerCase()) {
           return e
         }
         if (e.artistName.toLowerCase() === _this.search.toLowerCase()) {
           return e
         }
+        if (_this.search.toLowerCase() === '') {
+          _this.getData()
+        }
       })
-
-      _this.listProduct = filter
     },
     openDialog(type) {
       const _this = this
       const overLay = document.querySelector('.over-lay')
+      const body = document.querySelector('body')
+      body.style.overflow = 'hidden'
       overLay.classList.add('active')
       switch (type) {
-        case 'createAt':
-          _this.createAtFilter = true
+        case 'type':
+          _this.typeFilter = true
+          _this.getData()
           break
         case 'createBy':
           _this.createByFilter = true
+          _this.getData()
           break
       }
     },
     closeDialog(type) {
       const _this = this
       const overLay = document.querySelector('.over-lay')
+      const body = document.querySelector('body')
       overLay.classList.remove('active')
+      body.style.overflow = 'visible'
       switch (type) {
-        case 'createAt':
-          _this.createAtFilter = false
+        case 'type':
+          _this.typeFilter = false
+          console.log(_this.typeSearch)
+          _this.listProduct = _.filter(_this.listProduct, (e) => {
+            if (e.type.toLowerCase() === _this.typeSearch.toLowerCase()) {
+              return e
+            }
+            if (_this.typeSearch.toLowerCase() === '') {
+              _this.getData()
+            }
+          })
+          break
+        case 'createBy':
+          _this.createByFilter = false
+          _this.listProduct = _.filter(_this.listProduct, (e) => {
+            if (e.createBy.toLowerCase() === _this.searchSelect.toLowerCase()) {
+              return e
+            }
+            if (__this.searchSelect.toLowerCase() === '') {
+              _this.getData()
+            }
+          })
+          break
+      }
+    },
+    cancelDialog(type) {
+      const _this = this
+      const overLay = document.querySelector('.over-lay')
+      const body = document.querySelector('body')
+      overLay.classList.remove('active')
+      body.style.overflow = 'visible'
+      switch (type) {
+        case 'type':
+          _this.typeFilter = false
           break
         case 'createBy':
           _this.createByFilter = false

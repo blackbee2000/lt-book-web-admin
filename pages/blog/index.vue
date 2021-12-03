@@ -26,12 +26,12 @@
             </el-button>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item>
-                <el-button class="actionIcon" @click="createAtFilter = true">
-                  Create At</el-button
+                <el-button class="actionIcon" @click="openDialog('tag')">
+                  Tag Blog</el-button
                 >
               </el-dropdown-item>
               <el-dropdown-item>
-                <el-button class="actionIcon" @click="createByFilter = true">
+                <el-button class="actionIcon" @click="openDialog('createBy')">
                   Create By</el-button
                 >
               </el-dropdown-item>
@@ -68,7 +68,10 @@
               class="el-icon-edit icon-funtion"
               @click="editDetail(scope.row.id, scope.row)"
             ></i>
-            <i class="el-icon-delete icon-funtion"></i>
+            <i
+              class="el-icon-delete icon-funtion"
+              @click="deleteItem(scope.row.id)"
+            ></i>
           </template>
         </el-table-column>
         <el-table-column label="Title" width="200">
@@ -76,12 +79,12 @@
             <span>{{ scope.row.title }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="Content" width="300">
+        <el-table-column label="Content" width="400">
           <template slot-scope="scope">
-            <span>{{ scope.row.bigContent }}</span>
+            <span class="threeline">{{ scope.row.bigContent }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="Small Content" width="150">
+        <el-table-column label="Small Content" width="400">
           <template slot-scope="scope">
             <span>{{ scope.row.content }}</span>
           </template>
@@ -124,34 +127,30 @@
       >
       </el-pagination>
     </div>
-    <el-dialog
-      title="Filter Create At"
-      :visible.sync="createAtFilter"
-      width="30%"
-      center
-    >
-      <div class="block">
-        <el-date-picker
-          style="width: 100%"
-          v-model="searchDay"
-          type="daterange"
-          align="right"
-          start-placeholder="Start Date"
-          end-placeholder="End Date"
-          default-value="2010-10-01"
+    <el-dialog title="Filter Tags" :visible.sync="tagfilter" width="30%" center>
+      <el-select
+        style="width: 100%"
+        v-model="tagSearch"
+        placeholder="Select Create By"
+      >
+        <el-option
+          v-for="item in tagList"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
         >
-        </el-date-picker>
-      </div>
+        </el-option>
+      </el-select>
       <span slot="footer" class="dialog-footer">
         <el-button
           style="
             background-color: #f56c6c !important;
             border-color: #f56c6c !important;
           "
-          @click="createAtFilter = false"
+          @click="cancelDialog('tag')"
           >Cancel</el-button
         >
-        <el-button @click="createAtFilter = false">Confirm</el-button>
+        <el-button @click="closeDialog('tag')">Confirm</el-button>
       </span>
     </el-dialog>
     <el-dialog
@@ -179,54 +178,79 @@
             background-color: #f56c6c !important;
             border-color: #f56c6c !important;
           "
-          @click="createByFilter = false"
+          @click="cancelDialog('createBy')"
           >Cancel</el-button
         >
-        <el-button @click="createByFilter = false">Confirm</el-button>
+        <el-button @click="closeDialog('createBy')">Confirm</el-button>
       </span>
     </el-dialog>
+    <div class="over-lay"></div>
   </div>
 </template>
 
 <script>
-import _ from 'lodash';
-import axios from 'axios';
+import _ from 'lodash'
+import axios from 'axios'
+import apiService from '@/store/apiService'
 export default {
-  layout: "default",
+  layout: 'default',
   data() {
     return {
       search: '',
-      searchDay: '',
-      createAtFilter: false,
+      tagSearch: '',
+      searchSelect: '',
+      tagfilter: false,
       createByFilter: false,
-      createByList: [
-        {
-          value: 'Option1',
-          label: 'Option1',
-        },
-        {
-          value: 'Option2',
-          label: 'Option2',
-        },
-      ],
+      tagList: [],
+      createByList: [],
       currentPage: 1,
       listBlog: [],
     }
   },
   created() {
-    const _this = this;
-    _this.getData();
+    const _this = this
+    _this.getData()
   },
   methods: {
     async getData() {
       const _this = this
       await axios
-        .get('https://lt-book-online.herokuapp.com/api/blog/GetByQuery')
+        .get('https://lt-book-api.herokuapp.com/api/blog/GetByQuery')
         .then((res) => {
-          _this.listBlog = res.data;
+          _this.listBlog = res.data
+          _.map(res.data, (e) => {
+            _this.createByList.push({ value: e.createBy, label: e.createBy })
+            _this.tagList.push({ value: e.tags, label: e.tags })
+          })
         })
         .catch((error) => {
           console.log('error')
+        })
+    },
+    async deleteItem(id) {
+      const _this = this
+      _this
+        .$confirm('Are you want to delete?', 'Warning', {
+          confirmButtonText: 'Ok',
+          cancelButtonText: 'Cancel',
+          type: 'warning',
+        })
+        .then(async () => {
+          const res = await apiService.deleteBlog(id)
+          if (res) {
+            _this.$message({
+              message: 'Delete successfully',
+              type: 'success',
+            })
+            setTimeout(() => {
+              _this.getData()
+            }, 1000)
+          } else {
+            _this.$message({
+              message: 'Delete Failed',
+              type: 'error',
+            })
+          }
         })
     },
     handleSizeChange(val) {
@@ -240,22 +264,85 @@ export default {
     },
     createNew() {
       const _this = this
-      // _this.$router.push(_this.localePath('/user/none'));
       _this.$router.push('blog/id')
     },
     editDetail(id, row) {
       const _this = this
-      _this.$router.push({ path: `blog/id=?${id}`, query: {blog: row} })
+      _this.$router.push({ path: `blog/id=?${id}`, query: { blog: row } })
     },
     filter() {
       const _this = this
-      const filter = _.filter(_this.listBlog, (e) => {
+      _this.listBlog = _.filter(_this.listBlog, (e) => {
         if (e.title.toLowerCase() === _this.search.toLowerCase()) {
           return e
         }
+        if (_this.search.toLowerCase() === '') {
+          _this.getData()
+        }
       })
-
-      _this.listBlog = filter
+    },
+    openDialog(type) {
+      const _this = this
+      const overLay = document.querySelector('.over-lay')
+      const body = document.querySelector('body')
+      body.style.overflow = 'hidden'
+      overLay.classList.add('active')
+      switch (type) {
+        case 'tag':
+          _this.tagfilter = true
+          _this.getData()
+          break
+        case 'createBy':
+          _this.createByFilter = true
+          _this.getData()
+          break
+      }
+    },
+    closeDialog(type) {
+      const _this = this
+      const overLay = document.querySelector('.over-lay')
+      const body = document.querySelector('body')
+      overLay.classList.remove('active')
+      body.style.overflow = 'visible'
+      switch (type) {
+        case 'tag':
+          _this.tagfilter = false
+          _this.listBlog = _.filter(_this.listBlog, (e) => {
+            if (e.tags.toLowerCase() === _this.tagSearch.toLowerCase()) {
+              return e
+            }
+            if (_this.tagSearch.toLowerCase() === '') {
+              _this.getData()
+            }
+          })
+          break
+        case 'createBy':
+          _this.createByFilter = false
+          _this.listBlog = _.filter(_this.listBlog, (e) => {
+            if (e.createBy.toLowerCase() === _this.searchSelect.toLowerCase()) {
+              return e
+            }
+            if (_this.searchSelect.toLowerCase() === '') {
+              _this.getData()
+            }
+          })
+          break
+      }
+    },
+    cancelDialog(type) {
+      const _this = this
+      const overLay = document.querySelector('.over-lay')
+      const body = document.querySelector('body')
+      overLay.classList.remove('active')
+      body.style.overflow = 'visible'
+      switch (type) {
+        case 'tag':
+          _this.tagfilter = false
+          break
+        case 'createBy':
+          _this.createByFilter = false
+          break
+      }
     },
   },
 }
@@ -268,5 +355,28 @@ export default {
 }
 .actionIcon:hover {
   color: #091023 !important;
+}
+.over-lay {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: #000;
+  opacity: 0;
+  width: 100%;
+  height: 100vh;
+  z-index: 200;
+  visibility: hidden;
+}
+.over-lay.active {
+  visibility: visible;
+  opacity: 0.8;
+}
+.threeline {
+  width: 100%;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
 }
 </style>
