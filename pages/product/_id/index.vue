@@ -216,46 +216,6 @@
         >
       </div>
     </div>
-    <div class="container" style="margin-top: 30px;">
-      <el-table :data="commentList" style="width: 100%">
-        <el-table-column width="100">
-          <template slot-scope="scope">
-            <el-avatar
-              v-if="scope.row.avtUser"
-              :size="50"
-              fit="cover"
-              shape="circle"
-              :src="scope.row.avtUser"
-            >
-            </el-avatar>
-          </template>
-        </el-table-column>
-        <el-table-column label="Function" width="100">
-          <i class="el-icon-edit icon-funtion"></i>
-          <i class="el-icon-delete icon-funtion"></i>
-        </el-table-column>
-        <el-table-column label="Name User">
-          <template slot-scope="scope">
-            <span>{{ scope.row.nameUser }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="Content">
-          <template slot-scope="scope">
-            <span>{{ scope.row.content }} VNĐ</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="Level" width="80">
-          <template slot-scope="scope">
-            <span>{{ scope.row.level }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="Id Parent" width="80">
-          <template slot-scope="scope">
-            <span>{{ scope.row.idParent }}</span>
-          </template>
-        </el-table-column>
-      </el-table>
-    </div>
   </div>
 </template>
 <script>
@@ -319,7 +279,6 @@ export default {
           label: 'Hết hàng',
         },
       ],
-      commentList: [],
     }
   },
   created() {
@@ -339,31 +298,12 @@ export default {
       }
     } else {
       _this.formData = _this.$route.query.product
-      _this.getCommentByIdBook(_this.$route.query.product.id)
     }
   },
   methods: {
     backPage() {
       const _this = this
       _this.$router.push('/product')
-    },
-    async getCommentByIdBook(id) {
-      const _this = this
-      const params = {
-        idBook: id,
-      }
-      await axios
-        .post(
-          'https://lt-book-api.herokuapp.com/api/comment/getByIdBook',
-          params
-        )
-        .then((res) => {
-          console.log('resss', res.data)
-          _this.commentList = res.data.data
-        })
-        .catch((error) => {
-          console.log('error comment')
-        })
     },
     async handleSave() {
       const _this = this

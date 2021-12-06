@@ -28,13 +28,18 @@
             <span>{{ scope.row.fullName }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="Function" width="100">
-          <!-- <template slot-scope="scope">
-            <i class="el-icon-edit icon-funtion"></i>
+        <el-table-column label="Function" width="150">
+          <template slot-scope="scope">
+            <i
+              class="el-icon-view icon-funtion"
+              @click="seeDetail(scope.row)"
+            ></i>
             <i class="el-icon-delete icon-funtion"></i>
-          </template> -->
-          <i class="el-icon-edit icon-funtion"></i>
-          <i class="el-icon-delete icon-funtion"></i>
+            <i
+              class="el-icon-s-promotion icon-funtion"
+              @click="openSendEmailDialog(scope.row)"
+            ></i>
+          </template>
         </el-table-column>
         <el-table-column label="Phone" width="200">
           <template slot-scope="scope">
@@ -64,12 +69,88 @@
       >
       </el-pagination>
     </div>
+    <el-drawer
+      title="Cart Detail"
+      :visible.sync="showDialog"
+      size="30%"
+      :wrapperClosable="false"
+      :withHeader="false"
+      :close-on-press-escape="false"
+    >
+      <div class="" style="min-height: 45px">
+        <div
+          class="
+            d-flex
+            py-2
+            px-2
+            flex-row
+            justify-content-between
+            align-items-center
+            header
+          "
+          style="background: #182444"
+        >
+          <div class="header-text" style="color: #fff; padding-left: 20px">
+            Account Customer Detail
+          </div>
+          <div @click="handleClose()">
+            <el-icon
+              style="cursor: pointer; color: #ffffff"
+              class="el-icon-close font-22 text-bold pb-2"
+            ></el-icon>
+          </div>
+        </div>
+        <el-scrollbar
+          ref="scrollbar"
+          style="height: calc(100vh - 45px); background: #d9d9d9"
+          v-if="contactDetail"
+        >
+          <div style="width: 100%; padding: 20px">
+            <p><strong>Full name: </strong> {{ contactDetail.fullName }}</p>
+            <p><strong>Phone: </strong>{{ contactDetail.phone }}</p>
+            <p><strong>Email: </strong>{{ contactDetail.email }}</p>
+            <p><strong>Note: </strong>{{ contactDetail.note }}</p>
+          </div>
+        </el-scrollbar>
+      </div>
+    </el-drawer>
+    <el-dialog
+      title="Send email for customer"
+      :visible.sync="sendEmailDialog"
+      width="50%"
+      center
+    >
+      <div class="form">
+        <div class="form-item" style="margin-top: 20px">
+          <label class="label">Content email</label>
+          <el-input
+            style="margin-top: 10px"
+            type="text"
+            v-model="formData.message"
+            placeholder="Content email"
+          ></el-input>
+        </div>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button
+          style="
+            background-color: #f56c6c !important;
+            border-color: #f56c6c !important;
+          "
+          @click="closeSendEmailDialog()"
+          >Cancel</el-button
+        >
+        <el-button @click="sendEmail()">Send</el-button>
+      </span>
+    </el-dialog>
+    <div class="over-lay"></div>
   </div>
 </template>
 
 <script>
 import _ from 'lodash'
 import axios from 'axios'
+import emailjs from 'emailjs-com'
 export default {
   layout: 'default',
   data() {
@@ -77,6 +158,14 @@ export default {
       search: '',
       currentPage: 1,
       listContact: [],
+      showDialog: false,
+      contactDetail: {},
+      sendEmailDialog: false,
+      formData: {
+        toName: '',
+        toEmail: '',
+        message: '',
+      },
     }
   },
   created() {
@@ -120,6 +209,79 @@ export default {
           _this.getData()
         }
       })
+    },
+    seeDetail(row) {
+      const _this = this
+      _this.contactDetail = row
+      window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: 'smooth',
+      })
+      const overLay = document.querySelector('.over-lay')
+      overLay.classList.add('active')
+      const body = document.querySelector('body')
+      body.style.overflow = 'hidden'
+      _this.showDialog = true
+    },
+    handleClose() {
+      const _this = this
+      const overLay = document.querySelector('.over-lay')
+      overLay.classList.remove('active')
+      const body = document.querySelector('body')
+      body.style.overflow = 'visible'
+      _this.showDialog = false
+    },
+    openSendEmailDialog(row) {
+      const _this = this
+      const overLay = document.querySelector('.over-lay')
+      overLay.classList.add('active')
+      const body = document.querySelector('body')
+      body.style.overflow = 'hidden'
+      _this.formData.toEmail = row.email
+      _this.formData.toName = row.fullName
+      _this.sendEmailDialog = true
+    },
+    sendEmail() {
+      const _this = this
+      const userID = 'user_sQzt0iuwKqiN4aYCbwKyp'
+      emailjs
+        .send(
+          'service_l09cnt9',
+          'template_xtcsiyr',
+          {
+            from_name: 'LTBOOK',
+            to_name: _this.formData.toName,
+            message: _this.formData.message,
+            to_email: '18110145@student.hcmute.edu.vn',
+          },
+          userID
+        )
+        .then((res) => {
+          _this.$message({
+            message: 'Send email successfully',
+            type: 'success',
+          })
+          const overLay = document.querySelector('.over-lay')
+          overLay.classList.remove('active')
+          const body = document.querySelector('body')
+          body.style.overflow = 'visible'
+          _this.sendEmailDialog = false
+        })
+        .catch((error) => {
+          _this.$message({
+            message: 'Send email failed',
+            type: 'error',
+          })
+        })
+    },
+    closeSendEmailDialog() {
+      const _this = this
+      const overLay = document.querySelector('.over-lay')
+      overLay.classList.remove('active')
+      const body = document.querySelector('body')
+      body.style.overflow = 'visible'
+      _this.sendEmailDialog = false
     },
   },
 }

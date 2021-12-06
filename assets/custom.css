@@ -110,3 +110,9 @@ h2{
 img{
     width: 100%;
 }
+.el-dialog__wrapper{
+    height: 100vh;
+}
+.el-dialog__title{
+    font-weight: 600;
+}

@@ -5,7 +5,7 @@
     </div>
     <div class="container" style="padding-bottom: 30px">
       <div class="row" style="justify-content: space-between">
-        <div class="col-md-6">
+        <div class="col-md-7">
           <div class="row">
             <el-input
               style="width: 83%"
@@ -19,26 +19,7 @@
             ></el-button>
           </div>
         </div>
-        <div class="col-md-3">
-          <el-dropdown>
-            <el-button>
-              Filter<i class="el-icon-arrow-down el-icon--right"></i>
-            </el-button>
-            <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item>
-                <el-button class="actionIcon" @click="openDialog('createAt')">
-                  Create At</el-button
-                >
-              </el-dropdown-item>
-              <el-dropdown-item>
-                <el-button class="actionIcon" @click="openDialog('createBy')">
-                  Create By</el-button
-                >
-              </el-dropdown-item>
-            </el-dropdown-menu>
-          </el-dropdown>
-        </div>
-        <div class="col-md-3" style="text-align: right">
+        <div class="col-md-5" style="text-align: right">
           <el-button
             style="width: 50%; height: 40px; font-size: 16px"
             icon="el-icon-document"
@@ -86,7 +67,7 @@
             <span>{{ scope.row.phone }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="Address" width="300">
+        <el-table-column label="Address">
           <template slot-scope="scope">
             <span>{{ scope.row.address }}</span>
           </template>
@@ -94,26 +75,6 @@
         <el-table-column label="Status Account" width="150">
           <template slot-scope="scope">
             <span>{{ scope.row.status }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="Create By" width="150">
-          <template slot-scope="scope">
-            <span>{{ scope.row.createBy }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="Create At" width="150">
-          <template slot-scope="scope">
-            <span>{{ scope.row.createAt }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="Update By" width="150">
-          <template slot-scope="scope">
-            <span>{{ scope.row.updateBy }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="Update At" width="150">
-          <template slot-scope="scope">
-            <span>{{ scope.row.updateAt }}</span>
           </template>
         </el-table-column>
       </el-table>
@@ -129,67 +90,6 @@
       >
       </el-pagination>
     </div>
-    <el-dialog
-      title="Filter Create At"
-      :visible.sync="createAtFilter"
-      width="30%"
-      center
-    >
-      <div class="block">
-        <el-date-picker
-          style="width: 100%"
-          v-model="searchDay"
-          type="daterange"
-          align="right"
-          start-placeholder="Start Date"
-          end-placeholder="End Date"
-          default-value="2010-10-01"
-        >
-        </el-date-picker>
-      </div>
-      <span slot="footer" class="dialog-footer">
-        <el-button
-          style="
-            background-color: #f56c6c !important;
-            border-color: #f56c6c !important;
-          "
-          @click="closeDialog('createAt')"
-          >Cancel</el-button
-        >
-        <el-button @click="closeDialog('createAt')">Confirm</el-button>
-      </span>
-    </el-dialog>
-    <el-dialog
-      title="Filter Create By"
-      :visible.sync="createByFilter"
-      width="30%"
-      center
-    >
-      <el-select
-        style="width: 100%"
-        v-model="searchSelect"
-        placeholder="Select Create By"
-      >
-        <el-option
-          v-for="item in createByList"
-          :key="item.value"
-          :label="item.label"
-          :value="item.value"
-        >
-        </el-option>
-      </el-select>
-      <span slot="footer" class="dialog-footer">
-        <el-button
-          style="
-            background-color: #f56c6c !important;
-            border-color: #f56c6c !important;
-          "
-          @click="closeDialog('createBy')"
-          >Cancel</el-button
-        >
-        <el-button @click="closeDialog('createBy')">Confirm</el-button>
-      </span>
-    </el-dialog>
     <div class="over-lay"></div>
   </div>
 </template>
@@ -202,20 +102,6 @@ export default {
   data() {
     return {
       search: '',
-      searchDay: '',
-      createAtFilter: false,
-      createByFilter: false,
-      createByList: [
-        {
-          value: 'Option1',
-          label: 'Option1',
-        },
-        {
-          value: 'Option2',
-          label: 'Option2',
-        },
-      ],
-      searchSelect: '',
       currentPage: 1,
       userAdmin: [],
     }
@@ -261,45 +147,20 @@ export default {
     },
     filter() {
       const _this = this
-      const filter = _.filter(_this.userAdmin, (e) => {
-        if (e.userName.toLowerCase() === _this.search.toLowerCase()) {
-          return e
-        }
-        if (e.fullName.toLowerCase() === _this.search.toLowerCase()) {
+      _this.userAdmin = _.filter(_this.userAdmin, (e) => {
+        if (e.name.toLowerCase() === _this.search.toLowerCase()) {
           return e
         }
         if (e.phone.toLowerCase() === _this.search.toLowerCase()) {
           return e
         }
+        if (e.username.toLowerCase() === _this.search.toLowerCase()) {
+          return e
+        }
+        if (_this.search.toLowerCase() === '') {
+          _this.getData()
+        }
       })
-
-      _this.userAdmin = filter
-    },
-    openDialog(type) {
-      const _this = this
-      const overLay = document.querySelector('.over-lay')
-      overLay.classList.add('active')
-      switch (type) {
-        case 'createAt':
-          _this.createAtFilter = true
-          break
-        case 'createBy':
-          _this.createByFilter = true
-          break
-      }
-    },
-    closeDialog(type) {
-      const _this = this
-      const overLay = document.querySelector('.over-lay')
-      overLay.classList.remove('active')
-      switch (type) {
-        case 'createAt':
-          _this.createAtFilter = false
-          break
-        case 'createBy':
-          _this.createByFilter = false
-          break
-      }
     },
   },
 }

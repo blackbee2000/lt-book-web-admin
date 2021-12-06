@@ -201,7 +201,20 @@ export default {
       searchSelect: '',
       tagfilter: false,
       createByFilter: false,
-      tagList: [],
+      tagList: [
+        {
+          value: 'New',
+          label: 'New',
+        },
+        {
+          value: 'Life',
+          label: 'Life',
+        },
+        {
+          value: 'Book',
+          label: 'Book',
+        },
+      ],
       createByList: [],
       currentPage: 1,
       listBlog: [],
@@ -214,14 +227,16 @@ export default {
   methods: {
     async getData() {
       const _this = this
+      const createByList = []
       await axios
         .get('https://lt-book-api.herokuapp.com/api/blog/GetByQuery')
         .then((res) => {
           _this.listBlog = res.data
           _.map(res.data, (e) => {
-            _this.createByList.push({ value: e.createBy, label: e.createBy })
-            _this.tagList.push({ value: e.tags, label: e.tags })
+            createByList.push({ value: e.createBy, label: e.createBy })
           })
+
+          _this.createByList = _.sortedUniq(createByList);
         })
         .catch((error) => {
           console.log('error')

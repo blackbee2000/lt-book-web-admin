@@ -26,13 +26,8 @@
             </el-button>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item>
-                <el-button class="actionIcon" @click="openDialog('createAt')">
-                  Create At</el-button
-                >
-              </el-dropdown-item>
-              <el-dropdown-item>
-                <el-button class="actionIcon" @click="openDialog('createBy')">
-                  Create By</el-button
+                <el-button class="actionIcon" @click="openDialog('status')">
+                  Status</el-button
                 >
               </el-dropdown-item>
             </el-dropdown-menu>
@@ -57,7 +52,10 @@
               @click="openDialog('edit')"
             ></i>
             <i class="el-icon-delete icon-funtion"></i>
-            <i @click="handleOpen(scope.row)" class="el-icon-view icon-funtion"></i>
+            <i
+              @click="handleOpen(scope.row)"
+              class="el-icon-view icon-funtion"
+            ></i>
           </template>
         </el-table-column>
         <el-table-column label="Name Customer" width="250">
@@ -140,11 +138,11 @@
               <el-table-column width="100">
                 <template slot-scope="scope">
                   <el-avatar
-                    v-if="scope.row.imgUrl"
+                    v-if="scope.row.imgBook"
                     :size="50"
                     fit="cover"
                     shape="circle"
-                    :src="scope.row.imgUrl"
+                    :src="scope.row.imgBook"
                   >
                   </el-avatar>
                 </template>
@@ -153,19 +151,14 @@
                 <i class="el-icon-edit icon-funtion"></i>
                 <i class="el-icon-delete icon-funtion"></i>
               </el-table-column>
-              <el-table-column label="Name">
+              <el-table-column label="Name Book">
                 <template slot-scope="scope">
-                  <span>{{ scope.row.name }}</span>
+                  <span>{{ scope.row.nameBook }}</span>
                 </template>
               </el-table-column>
               <el-table-column label="Price" width="150">
                 <template slot-scope="scope">
                   <span>{{ scope.row.price }} VNĐ</span>
-                </template>
-              </el-table-column>
-              <el-table-column label="Rating" width="80">
-                <template slot-scope="scope">
-                  <span>{{ scope.row.rating }}</span>
                 </template>
               </el-table-column>
               <el-table-column label="Amount" width="80">
@@ -175,69 +168,28 @@
               </el-table-column>
               <el-table-column label="Total" width="150">
                 <template slot-scope="scope">
-                  <span>{{ scope.row.total }} VNĐ</span>
+                  <span>{{ scope.row.totalPrice }} VNĐ</span>
                 </template>
               </el-table-column>
             </el-table>
-            <el-pagination
-              @size-change="handleSizeChange"
-              @current-change="handleCurrentChange"
-              :current-page.sync="currentPage"
-              :page-sizes="[1, 10, 20, 50, 100]"
-              background
-              layout="prev, pager, next"
-              :page-size="10"
-              :total="50"
-            >
-            </el-pagination>
           </div>
         </el-scrollbar>
       </div>
     </el-drawer>
     <div class="over-lay"></div>
     <el-dialog
-      title="Filter Create At"
-      :visible.sync="createAtFilter"
-      width="30%"
-      center
-    >
-      <div class="block">
-        <el-date-picker
-          style="width: 100%"
-          v-model="searchDay"
-          type="daterange"
-          align="right"
-          start-placeholder="Start Date"
-          end-placeholder="End Date"
-          default-value="2010-10-01"
-        >
-        </el-date-picker>
-      </div>
-      <span slot="footer" class="dialog-footer">
-        <el-button
-          style="
-            background-color: #f56c6c !important;
-            border-color: #f56c6c !important;
-          "
-          @click="closeDialog('createAt')"
-          >Cancel</el-button
-        >
-        <el-button @click="closeDialog('createAt')">Confirm</el-button>
-      </span>
-    </el-dialog>
-    <el-dialog
-      title="Filter Create By"
-      :visible.sync="createByFilter"
+      title="Status Cart"
+      :visible.sync="statusCartDialog"
       width="30%"
       center
     >
       <el-select
         style="width: 100%"
-        v-model="searchSelect"
-        placeholder="Select Create By"
+        v-model="statusCart"
+        placeholder="Select status"
       >
         <el-option
-          v-for="item in createByList"
+          v-for="item in statusCartList"
           :key="item.value"
           :label="item.label"
           :value="item.value"
@@ -250,10 +202,10 @@
             background-color: #f56c6c !important;
             border-color: #f56c6c !important;
           "
-          @click="closeDialog('createBy')"
+          @click="closeDialog('status')"
           >Cancel</el-button
         >
-        <el-button @click="closeDialog('createBy')">Confirm</el-button>
+        <el-button @click="closeDialog('status')">Confirm</el-button>
       </span>
     </el-dialog>
     <el-dialog
@@ -312,20 +264,18 @@ export default {
     return {
       editCart: false,
       search: '',
-      searchDay: '',
-      createAtFilter: false,
-      createByFilter: false,
-      createByList: [
+      statusCart: '',
+      statusCartDialog: false,
+      statusCartList: [
         {
-          value: 'Option1',
-          label: 'Option1',
+          value: 'noPayment',
+          label: 'No Payment',
         },
         {
-          value: 'Option2',
-          label: 'Option2',
+          value: 'payment',
+          label: 'Payment',
         },
       ],
-      searchSelect: '',
       currentPage: 1,
       listCart: [],
       formData: {
@@ -339,13 +289,13 @@ export default {
   },
   created() {
     const _this = this
-    // _this.getData()
+    _this.getData()
   },
   methods: {
     async getData() {
       const _this = this
       await axios
-        .get('https://lt-book-online.herokuapp.com/api/bill/GetByQuery')
+        .get('https://lt-book-api.herokuapp.com/api/bill/GetByQuery')
         .then((res) => {
           _this.listCart = res.data
         })
@@ -353,12 +303,20 @@ export default {
           console.log('error')
         })
     },
-    async getProductCart(code) {
-      const _this = this;
+    async getCartDetail(id) {
+      const _this = this
+      const token = JSON.parse(localStorage.getItem('token'))?.access_token
       await axios
-        .get(`https://lt-book-online.herokuapp.com/api/productCart/GetByCodeCart?codeCart=${code}`)
+        .get(
+          `https://lt-book-api.herokuapp.com/api/bookinbill/GetByIdBill?idBill=${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        )
         .then((res) => {
-          _this.cartDetail = res.data.data;
+          _this.cartDetail = res.data.data
         })
         .catch((error) => {
           console.log('error product cart')
@@ -375,20 +333,29 @@ export default {
     },
     handleOpen(row) {
       const _this = this
+      window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: 'smooth',
+      })
       const overLay = document.querySelector('.over-lay')
+      const body = document.querySelector('body')
+      body.style.overflow = 'hidden'
       overLay.classList.add('active')
-      // _this.getProductCart(row.code);
-      _this.showDialog = true;
+      _this.getCartDetail(row.id)
+      _this.showDialog = true
     },
     handleClose() {
       const _this = this
       const overLay = document.querySelector('.over-lay')
+      const body = document.querySelector('body')
       overLay.classList.remove('active')
+      body.style.overflow = 'visible'
       _this.showDialog = false
     },
     filter() {
       const _this = this
-      const filter = _.filter(_this.listCart, (e) => {
+      _this.listCart = _.filter(_this.listCart, (e) => {
         if (e.code.toLowerCase() === _this.search.toLowerCase()) {
           return e
         }
@@ -398,20 +365,21 @@ export default {
         if (e.phoneCustomer.toLowerCase() === _this.search.toLowerCase()) {
           return e
         }
+        if (_this.search.toLowerCase() === '') {
+          _this.getData()
+        }
       })
-
-      _this.listCart = filter
     },
     openDialog(type) {
       const _this = this
       const overLay = document.querySelector('.over-lay')
+      const body = document.querySelector('body')
+      body.style.overflow = 'hidden'
       overLay.classList.add('active')
       switch (type) {
-        case 'createAt':
-          _this.createAtFilter = true
-          break
-        case 'createBy':
-          _this.createByFilter = true
+        case 'status':
+          _this.statusCartDialog = true
+          _this.getData()
           break
         case 'edit':
           _this.editCart = true
@@ -421,15 +389,37 @@ export default {
     closeDialog(type) {
       const _this = this
       const overLay = document.querySelector('.over-lay')
+      const body = document.querySelector('body')
       overLay.classList.remove('active')
+      body.style.overflow = 'visible'
       switch (type) {
-        case 'createAt':
-          _this.createAtFilter = false
-          break
-        case 'createBy':
-          _this.createByFilter = false
+        case 'status':
+          _this.statusCartDialog = false
+          _this.listCart = _.filter(_this.listCart, (e) => {
+            if (e.status.toLowerCase() === _this.statusCart.toLowerCase()) {
+              return e
+            }
+            if (_this.statusCart.toLowerCase() === '') {
+              _this.getData()
+            }
+          })
           break
         case 'edit':
+          _this.editCart = false
+          break
+      }
+    },
+    cancelDialog(type) {
+      const _this = this
+      const overLay = document.querySelector('.over-lay')
+      const body = document.querySelector('body')
+      overLay.classList.remove('active')
+      body.style.overflow = 'visible'
+      switch (type) {
+        case 'status':
+          _this.statusCartDialog = false
+          break
+        case 'createBy':
           _this.editCart = false
           break
       }

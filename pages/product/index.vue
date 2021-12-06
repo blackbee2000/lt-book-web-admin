@@ -62,7 +62,7 @@
             </el-avatar>
           </template>
         </el-table-column>
-        <el-table-column label="Function" width="100">
+        <el-table-column label="Function" width="150">
           <template slot-scope="scope">
             <i
               class="el-icon-edit icon-funtion"
@@ -71,6 +71,10 @@
             <i
               class="el-icon-delete icon-funtion"
               @click="deleteItem(scope.row.id)"
+            ></i>
+            <i
+              class="el-icon-view icon-funtion"
+              @click="openListComment(scope.row.id)"
             ></i>
           </template>
         </el-table-column>
@@ -231,6 +235,119 @@
         <el-button @click="closeDialog('createBy')">Confirm</el-button>
       </span>
     </el-dialog>
+    <el-drawer
+      title="Comment Book"
+      :visible.sync="showDialog"
+      size="60%"
+      :wrapperClosable="false"
+      :withHeader="false"
+      :close-on-press-escape="false"
+    >
+      <div class="" style="min-height: 45px">
+        <div
+          class="
+            d-flex
+            py-2
+            px-2
+            flex-row
+            justify-content-between
+            align-items-center
+            header
+          "
+          style="background: #182444"
+        >
+          <div class="header-text" style="color: #fff; padding-left: 20px">
+            Comment Book
+          </div>
+          <div @click="handleClose()">
+            <el-icon
+              style="cursor: pointer; color: #ffffff"
+              class="el-icon-close font-22 text-bold pb-2"
+            ></el-icon>
+          </div>
+        </div>
+        <el-scrollbar
+          ref="scrollbar"
+          style="height: calc(100vh - 45px); background: #d9d9d9"
+          v-if="commentList"
+        >
+          <div style="width: 100%; padding: 20px">
+            <el-table :data="commentList" style="width: 100%">
+              <el-table-column width="100">
+                <template slot-scope="scope">
+                  <el-avatar
+                    v-if="scope.row.avtUser"
+                    :size="50"
+                    fit="cover"
+                    shape="circle"
+                    :src="scope.row.avtUser"
+                  >
+                  </el-avatar>
+                </template>
+              </el-table-column>
+              <el-table-column label="Function" width="100">
+                <template slot-scope="scope">
+                  <i
+                    class="el-icon-s-promotion icon-funtion"
+                    @click="openSendCommentDialog(scope.row.id)"
+                  ></i>
+                  <i class="el-icon-delete icon-funtion"></i>
+                </template>
+              </el-table-column>
+              <el-table-column label="Name User">
+                <template slot-scope="scope">
+                  <span>{{ scope.row.nameUser }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="Content">
+                <template slot-scope="scope">
+                  <span>{{ scope.row.content }} VNĐ</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="Level" width="80">
+                <template slot-scope="scope">
+                  <span>{{ scope.row.level }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="Id Parent" width="80">
+                <template slot-scope="scope">
+                  <span>{{ scope.row.idParent }}</span>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+        </el-scrollbar>
+      </div>
+    </el-drawer>
+    <el-dialog
+      title="Reply Comment"
+      :visible.sync="replyComment"
+      width="50%"
+      center
+    >
+      <div class="form">
+        <div class="form-item">
+          <label class="label">Reply Content</label>
+          <el-input
+            style="margin-top: 10px"
+            type="text"
+            v-model="reply"
+            placeholder="Content"
+          ></el-input>
+        </div>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button
+          style="
+            background-color: #f56c6c !important;
+            border-color: #f56c6c !important;
+          "
+          @click="closeSendCommentDialog()"
+          >Cancel</el-button
+        >
+        <el-button @click="sendComment()">Send</el-button>
+      </span>
+    </el-dialog>
     <div class="over-lay"></div>
   </div>
 </template>
@@ -247,12 +364,42 @@ export default {
       typeSearch: '',
       typeFilter: false,
       createByFilter: false,
-      typeList: [],
+      typeList: [
+        {
+          value: 'Comic',
+          label: 'Comic',
+        },
+        {
+          value: 'Novel',
+          label: 'Novel',
+        },
+        {
+          value: 'Poem',
+          label: 'Poem',
+        },
+        {
+          value: 'TextBook',
+          label: 'TextBook',
+        },
+        {
+          value: 'Thriller',
+          label: 'Thriller',
+        },
+        {
+          value: 'Short',
+          label: 'Short',
+        },
+      ],
       createByList: [],
       searchSelect: '',
       currentPage: 1,
       listProduct: [],
       commentList: [],
+      showDialog: false,
+      replyComment: false,
+      reply: '',
+      idBook: null,
+      idParent: null,
     }
   },
   created() {
@@ -262,17 +409,38 @@ export default {
   methods: {
     async getData() {
       const _this = this
+      const createByList = []
       await axios
         .get('https://lt-book-api.herokuapp.com/api/book/GetByQuery')
         .then((res) => {
           _this.listProduct = res.data
           _.map(res.data, (e) => {
-            _this.createByList.push({ value: e.createBy, label: e.createBy })
-            _this.typeList.push({ value: e.type, label: e.type })
+            createByList.push({ value: e.createBy, label: e.createBy })
           })
+
+          _this.createByList = _.sortedUniq(createByList);
+          console.log('llissssttt',_this.createByList);
         })
         .catch((error) => {
           console.log('error')
+        })
+    },
+    async getCommentByIdBook(id) {
+      const _this = this
+      const params = {
+        idBook: id,
+      }
+      await axios
+        .post(
+          'https://lt-book-api.herokuapp.com/api/comment/getByIdBook',
+          params
+        )
+        .then((res) => {
+          console.log('hahahaah', res.data.data)
+          _this.commentList = res.data.data
+        })
+        .catch((error) => {
+          console.log('error comment')
         })
     },
     handleSizeChange(val) {
@@ -358,7 +526,6 @@ export default {
       switch (type) {
         case 'type':
           _this.typeFilter = false
-          console.log(_this.typeSearch)
           _this.listProduct = _.filter(_this.listProduct, (e) => {
             if (e.type.toLowerCase() === _this.typeSearch.toLowerCase()) {
               return e
@@ -370,11 +537,11 @@ export default {
           break
         case 'createBy':
           _this.createByFilter = false
-          _this.listProduct = _.filter(_this.listProduct, (e) => {
+          _this.listBlog = _.filter(_this.listBlog, (e) => {
             if (e.createBy.toLowerCase() === _this.searchSelect.toLowerCase()) {
               return e
             }
-            if (__this.searchSelect.toLowerCase() === '') {
+            if (_this.searchSelect.toLowerCase() === '') {
               _this.getData()
             }
           })
@@ -395,6 +562,75 @@ export default {
           _this.createByFilter = false
           break
       }
+    },
+    openListComment(id) {
+      const _this = this
+      window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: 'smooth',
+      })
+      const overLay = document.querySelector('.over-lay')
+      const body = document.querySelector('body')
+      body.style.overflow = 'hidden'
+      overLay.classList.add('active')
+      _this.idBook = id
+      _this.getCommentByIdBook(id)
+      _this.showDialog = true
+    },
+    handleClose() {
+      const _this = this
+      const overLay = document.querySelector('.over-lay')
+      overLay.classList.remove('active')
+      const body = document.querySelector('body')
+      body.style.overflow = 'visible'
+      _this.showDialog = false
+    },
+    openSendCommentDialog(id) {
+      const _this = this
+      _this.idParent = id
+      _this.replyComment = true
+    },
+    async sendComment() {
+      const _this = this
+      const user = JSON.parse(localStorage.getItem('user'))
+      const params = {
+        id: null,
+        idBook: _this.idBook,
+        avtUser: user.data.avtUrl,
+        nameUser: user.data.name,
+        content: _this.reply,
+        level: 1,
+        idParent: _this.idParent,
+      }
+      await axios
+        .post(
+          'https://lt-book-api.herokuapp.com/api/comment/sendComment',
+          params,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        )
+        .then((res) => {
+          _this.$message({
+            message: 'Send comment successfully',
+            type: 'success',
+          })
+          _this.getCommentByIdBook(_this.idBook)
+          _this.replyComment = false
+        })
+        .catch((error) => {
+          _this.$message({
+            message: 'Send comment failed',
+            type: 'error',
+          })
+        })
+    },
+    closeSendCommentDialog() {
+      const _this = this
+      _this.replyComment = false
     },
   },
 }
