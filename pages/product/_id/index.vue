@@ -167,7 +167,7 @@
         </div>
         <div class="col-md-6">
           <div class="form-item" style="margin-top: 20px; text-align: center">
-            <label class="label">Image Blog</label>
+            <label class="label">Artist Avatar</label>
             <div style="width: 100%">
               <div class="wrapperTwo">
                 <div class="imageTwo">

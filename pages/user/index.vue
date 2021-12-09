@@ -110,11 +110,16 @@ export default {
       currentPage: 1,
       userAdmin: [],
       admin: [],
+      user: {},
     }
   },
   created() {
     const _this = this
     _this.getData()
+  },
+  mounted() {
+    const _this = this
+    _this.user = JSON.parse(localStorage.getItem('user'))
   },
   methods: {
     async getData() {
@@ -125,7 +130,7 @@ export default {
         .then((res) => {
           _this.admin = res.data
           _this.getUserAdmin(_this.admin)
-          console.log('res',_this.admin);
+          console.log('res', _this.admin)
         })
         .catch((error) => {
           console.log('error')
@@ -144,29 +149,36 @@ export default {
     },
     async deleteItem(id) {
       const _this = this
-      _this
-        .$confirm('Are you want to delete?', 'Warning', {
-          confirmButtonText: 'Ok',
-          cancelButtonText: 'Cancel',
-          type: 'warning',
+      if (_this.user?.data?.roles[0]?.name === 'ROLE_ADMIN') {
+        _this.$message({
+          message: 'You do not allow',
+          type: 'error',
         })
-        .then(async () => {
-          const res = await apiService.deleteUser(id)
-          if (res) {
-            _this.$message({
-              message: 'Delete successfully',
-              type: 'success',
-            })
-            setTimeout(() => {
-              window.location.reload()
-            }, 1000)
-          } else {
-            _this.$message({
-              message: 'Delete Failed',
-              type: 'error',
-            })
-          }
-        })
+      } else {
+        _this
+          .$confirm('Are you want to delete?', 'Warning', {
+            confirmButtonText: 'Ok',
+            cancelButtonText: 'Cancel',
+            type: 'warning',
+          })
+          .then(async () => {
+            const res = await apiService.deleteUser(id)
+            if (res) {
+              _this.$message({
+                message: 'Delete successfully',
+                type: 'success',
+              })
+              setTimeout(() => {
+                window.location.reload()
+              }, 1000)
+            } else {
+              _this.$message({
+                message: 'Delete Failed',
+                type: 'error',
+              })
+            }
+          })
+      }
     },
 
     handleSizeChange(val) {
@@ -180,11 +192,25 @@ export default {
     },
     createNew() {
       const _this = this
-      _this.$router.push('user/id')
+      if (_this.user?.data?.roles[0]?.name === 'ROLE_ADMIN') {
+        _this.$message({
+          message: 'You do not allow',
+          type: 'error',
+        })
+      } else {
+        _this.$router.push('user/id')
+      }
     },
     editDetail(id, row) {
       const _this = this
-      _this.$router.push({ path: `user/id=?${id}`, query: { user: row } })
+      if (_this.user?.data?.roles[0]?.name === 'ROLE_ADMIN') {
+        _this.$message({
+          message: 'You do not allow',
+          type: 'error',
+        })
+      } else {
+        _this.$router.push({ path: `user/id=?${id}`, query: { user: row } })
+      }
     },
     filter() {
       const _this = this

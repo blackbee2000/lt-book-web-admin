@@ -11,6 +11,7 @@
             />
             <p>Have an account ?</p>
           </div>
+          <div v-show="errorLogin" style="color: red; font-size: 16px; margin-bottom: 10px;">Lỗi đăng nhập, vui lòng kiểm tra lại</div>
           <el-form-item>
             <el-input
               v-model="form.userName"
@@ -50,6 +51,7 @@ export default {
         password: '',
       },
       checked: true,
+      errorLogin: false,
     }
   },
   methods: {
@@ -82,11 +84,8 @@ export default {
             })
         })
         .catch((error) => {
-          _this.$message({
-            message: 'login failed',
-            type: 'error'
-          })
-          console.log('error')
+          _this.errorLogin = true;
+          console.log(_this.errorLogin);
         })
     },
   },

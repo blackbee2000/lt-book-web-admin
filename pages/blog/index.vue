@@ -30,11 +30,6 @@
                   Tag Blog</el-button
                 >
               </el-dropdown-item>
-              <el-dropdown-item>
-                <el-button class="actionIcon" @click="openDialog('createBy')">
-                  Create By</el-button
-                >
-              </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
         </div>
@@ -151,37 +146,6 @@
           >Cancel</el-button
         >
         <el-button @click="closeDialog('tag')">Confirm</el-button>
-      </span>
-    </el-dialog>
-    <el-dialog
-      title="Filter Create By"
-      :visible.sync="createByFilter"
-      width="30%"
-      center
-    >
-      <el-select
-        style="width: 100%"
-        v-model="searchSelect"
-        placeholder="Select Create By"
-      >
-        <el-option
-          v-for="item in createByList"
-          :key="item.value"
-          :label="item.label"
-          :value="item.value"
-        >
-        </el-option>
-      </el-select>
-      <span slot="footer" class="dialog-footer">
-        <el-button
-          style="
-            background-color: #f56c6c !important;
-            border-color: #f56c6c !important;
-          "
-          @click="cancelDialog('createBy')"
-          >Cancel</el-button
-        >
-        <el-button @click="closeDialog('createBy')">Confirm</el-button>
       </span>
     </el-dialog>
     <div class="over-lay"></div>
@@ -307,10 +271,6 @@ export default {
           _this.tagfilter = true
           _this.getData()
           break
-        case 'createBy':
-          _this.createByFilter = true
-          _this.getData()
-          break
       }
     },
     closeDialog(type) {
@@ -331,17 +291,6 @@ export default {
             }
           })
           break
-        case 'createBy':
-          _this.createByFilter = false
-          _this.listBlog = _.filter(_this.listBlog, (e) => {
-            if (e.createBy.toLowerCase() === _this.searchSelect.toLowerCase()) {
-              return e
-            }
-            if (_this.searchSelect.toLowerCase() === '') {
-              _this.getData()
-            }
-          })
-          break
       }
     },
     cancelDialog(type) {
@@ -353,9 +302,6 @@ export default {
       switch (type) {
         case 'tag':
           _this.tagfilter = false
-          break
-        case 'createBy':
-          _this.createByFilter = false
           break
       }
     },

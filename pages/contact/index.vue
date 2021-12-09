@@ -261,6 +261,11 @@ export default {
     },
     openSendEmailDialog(row) {
       const _this = this
+      window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: 'smooth',
+      })
       const overLay = document.querySelector('.over-lay')
       overLay.classList.add('active')
       const body = document.querySelector('body')
@@ -280,7 +285,7 @@ export default {
             from_name: 'LTBOOK',
             to_name: _this.formData.toName,
             message: _this.formData.message,
-            to_email: '18110145@student.hcmute.edu.vn',
+            to_email: _this.formData.toEmail,
           },
           userID
         )

@@ -126,7 +126,7 @@
             <el-input
               type="text"
               v-model="formData.email"
-              placeholder="Phone"
+              placeholder="Email"
             ></el-input>
           </div>
         </div>
