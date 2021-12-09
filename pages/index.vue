@@ -82,6 +82,10 @@ export default {
             })
         })
         .catch((error) => {
+          _this.$message({
+            message: 'login failed',
+            type: 'error'
+          })
           console.log('error')
         })
     },

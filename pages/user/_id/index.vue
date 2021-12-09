@@ -43,7 +43,7 @@
               type="password"
               v-model="formData.password"
               placeholder="Password"
-              :disabled ="disablePass"
+              :disabled="disablePass"
             ></el-input>
           </div>
         </div>
@@ -106,7 +106,10 @@
             style="margin-top: 20px; display: flex; flex-direction: column"
           >
             <label class="label">Role</label>
-            <el-select v-model="formData.roles[0].name" placeholder="Choose Role">
+            <el-select
+              v-model="formData.roles[0].name"
+              placeholder="Choose Role"
+            >
               <el-option
                 v-for="item in roleList"
                 :key="item.value"
@@ -184,6 +187,7 @@
 </template>
 <script>
 import axios from 'axios'
+import apiService from '@/store/apiService'
 export default {
   data() {
     return {
@@ -199,9 +203,9 @@ export default {
         roles: [
           {
             id: '',
-            name: ''
-          }
-        ]
+            name: '',
+          },
+        ],
       },
       disablePass: false,
       optionStatus: [
@@ -223,12 +227,12 @@ export default {
           value: 'ROLE_SUPER_ADMIN',
           label: 'ROLE SUPER ADMIN',
         },
-      ]
+      ],
     }
   },
   created() {
     const _this = this
-    if (_this.$route.params.id === 'id') {
+    if (_this.$route?.params?.id === 'id') {
       _this.formData = {
         username: '',
         password: '',
@@ -241,12 +245,12 @@ export default {
         roles: [
           {
             id: '',
-            name: ''
-          }
-        ]
+            name: '',
+          },
+        ],
       }
     } else {
-      _this.formData = _this.$route.query.user
+      _this.formData = _this.$route?.query?.user
     }
   },
   methods: {
@@ -255,14 +259,14 @@ export default {
       _this.$router.push('/user')
     },
     async handleSave() {
-      const _this = this;
-      if(_this.formData.roles[0].name === "ROLE_ADMIN"){
+      const _this = this
+      if (_this.formData.roles[0].name === 'ROLE_ADMIN') {
         _this.formData.roles[0].id = 7
       }
-      if(_this.formData.roles[0].name === "ROLE_SUPER_ADMIN"){
+      if (_this.formData.roles[0].name === 'ROLE_SUPER_ADMIN') {
         _this.formData.roles[0].id = 8
       }
-      const params = {
+      const paramsCreate = {
         id: null,
         name: _this.formData.name,
         username: _this.formData.username,
@@ -275,31 +279,65 @@ export default {
         roles: [
           {
             id: _this.formData.roles[0].id,
-            name: _this.formData.roles[0].name
-          }
-        ]
+            name: _this.formData.roles[0].name,
+          },
+        ],
       }
-      console.log(params);
-      await axios.post('https://lt-book-api.herokuapp.com/api/user/save', params).then(
-        res =>{
-          console.log(res);
+      const paramsUpdate = {
+        name: _this.formData.name,
+        username: _this.formData.username,
+        password: _this.formData.password,
+        phone: _this.formData.phone,
+        status: _this.formData.status,
+        address: _this.formData.address,
+        email: _this.formData.email,
+        avtUrl: _this.formData.avtUrl,
+        roles: [
+          {
+            id: _this.formData.roles[0].id,
+            name: _this.formData.roles[0].name,
+          },
+        ],
+      }
+      if (_this.$route.params.id === 'id') {
+        await axios
+        .post('https://lt-book-api.herokuapp.com/api/user/save', paramsCreate)
+        .then((res) => {
+          console.log(res)
           _this.$message({
             message: 'Create account admin successfully',
-            type: 'success'
+            type: 'success',
           })
-          setTimeout(() =>{
+          setTimeout(() => {
             _this.$router.push('/user')
           }, 1000)
-        }
-      ).catch(
-        error =>{
+        })
+        .catch((error) => {
           _this.$message({
             message: 'Create account admin failed',
-            type: 'error'
+            type: 'error',
+          })
+        })
+      } else {
+        const res = await apiService.updateUser(
+          _this.$route.query.user.id,
+          paramsUpdate
+        )
+        if (res) {
+          _this.$message({
+            message: 'Update successfully',
+            type: 'success',
+          })
+          setTimeout(() => {
+            _this.$router.push('/user')
+          }, 2000)
+        } else {
+          _this.$message({
+            message: 'Update Failed',
+            type: 'error',
           })
         }
-      )
-
+      }
     },
     async uploadImage(image) {
       const _this = this
@@ -321,9 +359,7 @@ export default {
     },
     async readImage(image) {
       await axios
-        .get(
-          `https://lt-book-api.herokuapp.com/api/fileUpload/files/${image}`
-        )
+        .get(`https://lt-book-api.herokuapp.com/api/fileUpload/files/${image}`)
         .then((res) => {
           console.log(res)
         })

@@ -169,7 +169,7 @@
         background
         layout="prev, pager, next"
         :page-size="10"
-        :total="50"
+        :total="listProduct.length"
       >
       </el-pagination>
     </div>
@@ -291,7 +291,7 @@
                     class="el-icon-s-promotion icon-funtion"
                     @click="openSendCommentDialog(scope.row.id)"
                   ></i>
-                  <i class="el-icon-delete icon-funtion"></i>
+                  <i class="el-icon-delete icon-funtion" @click="deleteComment(scope.row.id)"></i>
                 </template>
               </el-table-column>
               <el-table-column label="Name User">
@@ -631,6 +631,32 @@ export default {
     closeSendCommentDialog() {
       const _this = this
       _this.replyComment = false
+    },
+    async deleteComment(id) {
+      const _this = this
+      _this
+        .$confirm('Are you want to delete?', 'Warning', {
+          confirmButtonText: 'Ok',
+          cancelButtonText: 'Cancel',
+          type: 'warning',
+        })
+        .then(async () => {
+          const res = await apiService.deleteComment(id)
+          if (res) {
+            _this.$message({
+              message: 'Delete successfully',
+              type: 'success',
+            })
+            setTimeout(() => {
+              _this.getCommentByIdBook(_this.idBook)
+            }, 1000)
+          } else {
+            _this.$message({
+              message: 'Delete Failed',
+              type: 'error',
+            })
+          }
+        })
     },
   },
 }

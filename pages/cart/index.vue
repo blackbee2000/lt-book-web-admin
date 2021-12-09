@@ -49,9 +49,12 @@
           <template slot-scope="scope">
             <i
               class="el-icon-edit icon-funtion"
-              @click="openDialog('edit')"
+              @click="openEditCart(scope.row)"
             ></i>
-            <i class="el-icon-delete icon-funtion"></i>
+            <i
+              class="el-icon-delete icon-funtion"
+              @click="deleteItem(scope.row.id)"
+            ></i>
             <i
               @click="handleOpen(scope.row)"
               class="el-icon-view icon-funtion"
@@ -83,6 +86,11 @@
             <span>{{ scope.row.status }}</span>
           </template>
         </el-table-column>
+        <el-table-column label="Date" width="150">
+          <template slot-scope="scope">
+            <span>{{ scope.row.date }}</span>
+          </template>
+        </el-table-column>
       </el-table>
       <el-pagination
         @size-change="handleSizeChange"
@@ -92,7 +100,7 @@
         background
         layout="prev, pager, next"
         :page-size="10"
-        :total="50"
+        :total="listCart.length"
       >
       </el-pagination>
     </div>
@@ -146,10 +154,6 @@
                   >
                   </el-avatar>
                 </template>
-              </el-table-column>
-              <el-table-column label="Function" width="100">
-                <i class="el-icon-edit icon-funtion"></i>
-                <i class="el-icon-delete icon-funtion"></i>
               </el-table-column>
               <el-table-column label="Name Book">
                 <template slot-scope="scope">
@@ -246,10 +250,10 @@
             background-color: #f56c6c !important;
             border-color: #f56c6c !important;
           "
-          @click="closeDialog('edit')"
+          @click="closeEditCart()"
           >Cancel</el-button
         >
-        <el-button @click="closeDialog('edit')">Save</el-button>
+        <el-button @click="saveEditCart()">Save</el-button>
       </span>
     </el-dialog>
   </div>
@@ -258,6 +262,7 @@
 <script>
 import _ from 'lodash'
 import axios from 'axios'
+import apiService from '@/store/apiService'
 export default {
   layout: 'default',
   data() {
@@ -285,6 +290,7 @@ export default {
       },
       showDialog: false,
       cartDetail: [],
+      cartselected: {},
     }
   },
   created() {
@@ -320,6 +326,32 @@ export default {
         })
         .catch((error) => {
           console.log('error product cart')
+        })
+    },
+    async deleteItem(id) {
+      const _this = this
+      _this
+        .$confirm('Are you want to delete?', 'Warning', {
+          confirmButtonText: 'Ok',
+          cancelButtonText: 'Cancel',
+          type: 'warning',
+        })
+        .then(async () => {
+          const res = await apiService.deleteBill(id)
+          if (res) {
+            _this.$message({
+              message: 'Delete successfully',
+              type: 'success',
+            })
+            setTimeout(() => {
+              _this.getData()
+            }, 1000)
+          } else {
+            _this.$message({
+              message: 'Delete Failed',
+              type: 'error',
+            })
+          }
         })
     },
     handleSizeChange(val) {
@@ -370,6 +402,64 @@ export default {
         }
       })
     },
+    openEditCart(row) {
+      const _this = this
+      window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: 'smooth',
+      })
+      const overLay = document.querySelector('.over-lay')
+      const body = document.querySelector('body')
+      body.style.overflow = 'hidden'
+      overLay.classList.add('active')
+      _this.cartselected = row
+      _this.formData.nameCustomer = row.nameCustomer
+      _this.formData.phoneCustomer = row.phoneCustomer
+      _this.formData.addressCustomer = row.addressCustomer
+      _this.editCart = true
+    },
+    async saveEditCart() {
+      const _this = this
+      const params = {
+        idUser: _this.cartselected.idUser,
+        nameCustomer: _this.formData.nameCustomer,
+        phoneCustomer: _this.formData.phoneCustomer,
+        addressCustomer: _this.formData.addressCustomer,
+        code: _this.cartselected.code,
+        total: 249100.0,
+        status: _this.cartselected.status,
+        date: _this.cartselected.date,
+      }
+      const res = await apiService.updateCart(_this.cartselected.id, params)
+      if (res) {
+        _this.$message({
+          message: 'Update successfully',
+          type: 'success',
+        })
+        setTimeout(() => {
+          const overLay = document.querySelector('.over-lay')
+          const body = document.querySelector('body')
+          overLay.classList.remove('active')
+          body.style.overflow = 'visible'
+          _this.editCart = false
+          _this.getData()
+        }, 1000)
+      } else {
+        _this.$message({
+          message: 'Update Failed',
+          type: 'error',
+        })
+      }
+    },
+    closeEditCart() {
+      const _this = this
+      const overLay = document.querySelector('.over-lay')
+      const body = document.querySelector('body')
+      overLay.classList.remove('active')
+      body.style.overflow = 'visible'
+      _this.editCart = false
+    },
     openDialog(type) {
       const _this = this
       const overLay = document.querySelector('.over-lay')
@@ -380,9 +470,6 @@ export default {
         case 'status':
           _this.statusCartDialog = true
           _this.getData()
-          break
-        case 'edit':
-          _this.editCart = true
           break
       }
     },
@@ -404,9 +491,6 @@ export default {
             }
           })
           break
-        case 'edit':
-          _this.editCart = false
-          break
       }
     },
     cancelDialog(type) {
@@ -418,9 +502,6 @@ export default {
       switch (type) {
         case 'status':
           _this.statusCartDialog = false
-          break
-        case 'createBy':
-          _this.editCart = false
           break
       }
     },

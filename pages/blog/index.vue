@@ -123,7 +123,7 @@
         background
         layout="prev, pager, next"
         :page-size="10"
-        :total="50"
+        :total="listBlog.length"
       >
       </el-pagination>
     </div>

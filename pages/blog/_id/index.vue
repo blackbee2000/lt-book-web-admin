@@ -204,7 +204,7 @@ export default {
   },
   created() {
     const _this = this
-    if (_this.$route.params.id === 'id') {
+    if (_this.$route?.params?.id === 'id') {
       _this.formData = {
         title: '',
         tags: '',
@@ -214,7 +214,7 @@ export default {
         status: '',
       }
     } else {
-      _this.formData = _this.$route.query.blog
+      _this.formData = _this.$route?.query?.blog
     }
   },
   methods: {
@@ -245,8 +245,8 @@ export default {
         tags: _this.formData.tags,
         status: _this.formData.status,
         imgUrl: _this.formData.imgUrl,
-        createBy: user.data.username,
-        createAt: moment().format('DD/MM/YYYY'),
+        createBy: _this.$route?.query?.blog?.createBy,
+        createAt: _this.$route?.query?.blog?.createAt,
         updateBy: user.data.username,
         updateAt: moment().format('DD/MM/YYYY'),
       }

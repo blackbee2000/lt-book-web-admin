@@ -5,7 +5,7 @@
     </div>
     <div class="container" style="padding-bottom: 30px">
       <div class="row" style="justify-content: space-between">
-        <div class="col-md-7">
+        <div class="col-md-6">
           <div class="row">
             <el-input
               style="width: 83%"
@@ -19,7 +19,8 @@
             ></el-button>
           </div>
         </div>
-        <div class="col-md-5" style="text-align: right">
+        <div class="col-md-3"></div>
+        <div class="col-md-3" style="text-align: right">
           <el-button
             style="width: 50%; height: 40px; font-size: 16px"
             icon="el-icon-document"
@@ -49,7 +50,10 @@
               class="el-icon-edit icon-funtion"
               @click="editDetail(scope.row.id, scope.row)"
             ></i>
-            <i class="el-icon-delete icon-funtion"></i>
+            <i
+              class="el-icon-delete icon-funtion"
+              @click="deleteItem(scope.row.id)"
+            ></i>
           </template>
         </el-table-column>
         <el-table-column label="User Name" width="150">
@@ -86,7 +90,7 @@
         background
         layout="prev, pager, next"
         :page-size="10"
-        :total="50"
+        :total="userAdmin.length"
       >
       </el-pagination>
     </div>
@@ -97,6 +101,7 @@
 <script>
 import _ from 'lodash'
 import axios from 'axios'
+import apiService from '@/store/apiService'
 export default {
   layout: 'default',
   data() {
@@ -104,6 +109,7 @@ export default {
       search: '',
       currentPage: 1,
       userAdmin: [],
+      admin: [],
     }
   },
   created() {
@@ -113,18 +119,53 @@ export default {
   methods: {
     async getData() {
       const _this = this
+      const admin = []
       await axios
         .get('https://lt-book-api.herokuapp.com/api/users')
         .then((res) => {
-          _.map(res.data, (e) => {
-              if(e.roles[0].name === "ROLE_SUPER_ADMIN" || e.roles[0].name === "ROLE_ADMIN"){
-                  _this.userAdmin.push(e);
-              }
-          });
-          console.log(_this.userAdmin);
+          _this.admin = res.data
+          _this.getUserAdmin(_this.admin)
+          console.log('res',_this.admin);
         })
         .catch((error) => {
           console.log('error')
+        })
+    },
+    getUserAdmin(array) {
+      const _this = this
+      _.map(array, (e) => {
+        if (
+          e.roles[0].name === 'ROLE_SUPER_ADMIN' ||
+          e.roles[0].name === 'ROLE_ADMIN'
+        ) {
+          _this.userAdmin.push(e)
+        }
+      })
+    },
+    async deleteItem(id) {
+      const _this = this
+      _this
+        .$confirm('Are you want to delete?', 'Warning', {
+          confirmButtonText: 'Ok',
+          cancelButtonText: 'Cancel',
+          type: 'warning',
+        })
+        .then(async () => {
+          const res = await apiService.deleteUser(id)
+          if (res) {
+            _this.$message({
+              message: 'Delete successfully',
+              type: 'success',
+            })
+            setTimeout(() => {
+              window.location.reload()
+            }, 1000)
+          } else {
+            _this.$message({
+              message: 'Delete Failed',
+              type: 'error',
+            })
+          }
         })
     },
 

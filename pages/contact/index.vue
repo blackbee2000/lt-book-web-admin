@@ -34,7 +34,7 @@
               class="el-icon-view icon-funtion"
               @click="seeDetail(scope.row)"
             ></i>
-            <i class="el-icon-delete icon-funtion"></i>
+            <i class="el-icon-delete icon-funtion" @click="deleteItem(scope.row.id)"></i>
             <i
               class="el-icon-s-promotion icon-funtion"
               @click="openSendEmailDialog(scope.row)"
@@ -43,7 +43,7 @@
         </el-table-column>
         <el-table-column label="Phone" width="200">
           <template slot-scope="scope">
-            <span>{{ scope.row.Phone }}</span>
+            <span>{{ scope.row.phone }}</span>
           </template>
         </el-table-column>
         <el-table-column label="Email" width="200">
@@ -65,7 +65,7 @@
         background
         layout="prev, pager, next"
         :page-size="10"
-        :total="50"
+        :total="listContact.length"
       >
       </el-pagination>
     </div>
@@ -151,6 +151,7 @@
 import _ from 'lodash'
 import axios from 'axios'
 import emailjs from 'emailjs-com'
+import apiService from '@/store/apiService'
 export default {
   layout: 'default',
   data() {
@@ -182,6 +183,32 @@ export default {
         })
         .catch((error) => {
           console.log('error')
+        })
+    },
+    async deleteItem(id) {
+      const _this = this
+      _this
+        .$confirm('Are you want to delete?', 'Warning', {
+          confirmButtonText: 'Ok',
+          cancelButtonText: 'Cancel',
+          type: 'warning',
+        })
+        .then(async () => {
+          const res = await apiService.deleteContact(id)
+          if (res) {
+            _this.$message({
+              message: 'Delete successfully',
+              type: 'success',
+            })
+            setTimeout(() => {
+              _this.getData()
+            }, 1000)
+          } else {
+            _this.$message({
+              message: 'Delete Failed',
+              type: 'error',
+            })
+          }
         })
     },
     handleSizeChange(val) {

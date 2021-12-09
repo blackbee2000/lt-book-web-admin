@@ -283,7 +283,7 @@ export default {
   },
   created() {
     const _this = this
-    if (_this.$route.params.id === 'id') {
+    if (_this.$route?.params?.id === 'id') {
       _this.formData = {
         name: '',
         price: '',
@@ -297,7 +297,7 @@ export default {
         artistAvatar: '',
       }
     } else {
-      _this.formData = _this.$route.query.product
+      _this.formData = _this.$route?.query?.product
     }
   },
   methods: {
@@ -343,8 +343,8 @@ export default {
         type: _this.formData.type,
         status: _this.formData.status,
         imageBook: _this.formData.imageBook,
-        createBy: user.data.username,
-        createAt: moment().format('DD/MM/YYYY'),
+        createBy: _this.$route?.query?.product?.createBy,
+        createAt: _this.$route?.query?.product?.createBy,
         updateBy: user.data.username,
         updateAt: moment().format('DD/MM/YYYY'),
         numBuy: 3,
