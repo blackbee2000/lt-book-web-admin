@@ -5,7 +5,7 @@
     </div>
     <div class="container" style="padding-bottom: 30px">
       <div class="row" style="justify-content: space-between">
-        <div class="col-md-6">
+        <div class="col-md-4">
           <div class="row">
             <el-input
               style="width: 83%"
@@ -33,7 +33,18 @@
             </el-dropdown-menu>
           </el-dropdown>
         </div>
-        <div class="col-md-3" style="text-align: right">
+        <div class="col-md-5" style="text-align: right">
+          <el-button
+            style="
+              width: 30%;
+              height: 40px;
+              font-size: 16px;
+              margin-right: 15px;
+            "
+            icon="el-icon-document"
+            @click="exportExcel()"
+            >Export Excel</el-button
+          >
           <el-button
             style="width: 50%; height: 40px; font-size: 16px"
             icon="el-icon-document"
@@ -44,7 +55,7 @@
       </div>
     </div>
     <div class="container">
-      <el-table :data="listProduct" style="width: 100%">
+      <el-table :data="listProduct" style="width: 100%" id="table-data">
         <el-table-column width="100">
           <template slot-scope="scope">
             <el-avatar
@@ -320,6 +331,8 @@
 import _ from 'lodash'
 import axios from 'axios'
 import apiService from '@/store/apiService'
+import fileSaver from 'file-saver'
+import xlsx from 'xlsx'
 export default {
   layout: 'default',
   data() {
@@ -601,6 +614,33 @@ export default {
             })
           }
         })
+    },
+    exportExcel() {
+      const _this = this
+      let box = xlsx.utils.table_to_book(document.querySelector('#table-data'))
+      let out = xlsx.write(box, {
+        bookType: 'xlsx',
+        bookSST: true,
+        type: 'array',
+      })
+      try {
+        fileSaver.saveAs(
+          new Blob([out], {
+            type: 'application/octet-stream',
+          }),
+          'book.xlsx',
+          _this.$message({
+          message: 'Export data successfully',
+          type: 'success',
+        })
+        )
+      } catch (e) {
+        _this.$message({
+          message: 'Export data failed',
+          type: 'error',
+        })
+      }
+      return out
     },
   },
 }

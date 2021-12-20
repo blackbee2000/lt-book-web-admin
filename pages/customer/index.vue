@@ -5,7 +5,7 @@
     </div>
     <div class="container" style="padding-bottom: 30px">
       <div class="row" style="justify-content: space-between">
-        <div class="col-md-6">
+        <div class="col-md-4">
           <div class="row">
             <el-input
               style="width: 83%"
@@ -19,10 +19,23 @@
             ></el-button>
           </div>
         </div>
+        <div class="col-md-3"></div>
+        <div class="col-md-5" style="text-align: right">
+          <el-button
+            style="
+              width: 30%;
+              height: 40px;
+              font-size: 16px;
+            "
+            icon="el-icon-document"
+            @click="exportExcel()"
+            >Export Excel</el-button
+          >
+        </div>
       </div>
     </div>
     <div class="container">
-      <el-table :data="userCustomer" style="width: 100%">
+      <el-table :data="userCustomer" style="width: 100%" id="table-data">
         <el-table-column label="Avatar" width="100">
           <template slot-scope="scope">
             <el-avatar
@@ -146,6 +159,8 @@
 import _ from 'lodash'
 import axios from 'axios'
 import apiService from '@/store/apiService'
+import fileSaver from 'file-saver'
+import xlsx from 'xlsx'
 export default {
   layout: 'default',
   data() {
@@ -257,6 +272,33 @@ export default {
       const body = document.querySelector('body')
       body.style.overflow = 'visible'
       _this.showDialog = false
+    },
+    exportExcel() {
+      const _this = this
+      let box = xlsx.utils.table_to_book(document.querySelector('#table-data'))
+      let out = xlsx.write(box, {
+        bookType: 'xlsx',
+        bookSST: true,
+        type: 'array',
+      })
+      try {
+        fileSaver.saveAs(
+          new Blob([out], {
+            type: 'application/octet-stream',
+          }),
+          'userCustomerData.xlsx',
+          _this.$message({
+          message: 'Export data successfully',
+          type: 'success',
+        })
+        )
+      } catch (e) {
+        _this.$message({
+          message: 'Export data failed',
+          type: 'error',
+        })
+      }
+      return out
     },
   },
 }

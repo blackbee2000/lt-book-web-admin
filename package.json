@@ -15,14 +15,17 @@
     "all": "0.0.0",
     "axios": "^0.24.0",
     "core-js": "^3.15.1",
+    "el-table-export": "^1.0.8",
     "element-ui": "^2.15.2",
     "emailjs-com": "^3.2.0",
+    "file-saver": "^2.0.5",
     "jquery": "^3.6.0",
     "lodash": "^4.17.21",
     "moment": "^2.29.1",
     "nuxt": "^2.15.7",
     "vue-router": "^3.5.3",
-    "vue2-editor": "^2.10.3"
+    "vue2-editor": "^2.10.3",
+    "xlsx": "^0.17.4"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.14.7",
